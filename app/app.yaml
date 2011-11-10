@@ -5,6 +5,8 @@ api_version: 1
 threadsafe: 1
 
 handlers:
+- url: /stylesheets
+  static_dir: public/stylesheets
 - url: /.*
   script: main.app
 

@@ -14,10 +14,18 @@ jinja_environment = jinja2.Environment(
 
 class TemplatePage(webapp2.RequestHandler):
 
+    LOGIN_REQUIRED = True
+    
     def make_context(self):
         return {}
     
     def get(self):
+        user = users.get_current_user()
+        if not user and self.LOGIN_REQUIRED:
+            #raise Exception("Hello")
+            self.response = webapp2.redirect(users.create_login_url(self.URL))
+            return self.response
+
         template = jinja_environment.get_template(self.TEMPLATE_NAME)
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(template.render(self.make_context()))
@@ -26,7 +34,8 @@ class TemplatePage(webapp2.RequestHandler):
 class IndexPage(TemplatePage):
     URL = "/"
     TEMPLATE_NAME = 'index.html'
-
+    LOGIN_REQUIRED = False
+    
     def make_context(self):
         return {'login_url':  users.create_login_url(DashboardPage.URL)}
 
