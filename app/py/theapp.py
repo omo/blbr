@@ -44,8 +44,13 @@ class DashboardPage(TemplatePage):
     URL = '/dashboard'
     TEMPLATE_NAME = 'dashboard.html'
 
+class TestPage(TemplatePage):
+    URL = '/test'
+    LOGIN_REQUIRED = False
+    TEMPLATE_NAME = 'test.html'
 
-page_classes = [IndexPage, DashboardPage]
+
+page_classes = [IndexPage, DashboardPage, TestPage]
 
 # The name |app| is given at 'app.cfg' file.
 app = webapp2.WSGIApplication([(p.URL, p) for p in page_classes])

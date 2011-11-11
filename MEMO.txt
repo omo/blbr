@@ -6,10 +6,10 @@ TODO:
 > Stub:
   + Add User class.
   + Add empty index page that ask user to login.
-  - Add empty main page which required login user.
-  - Add bootstrap stack
-  - Add empty app js to main page
+  + Add empty main page which required login user.
+  + Add bootstrap stack
   - Add empty js test page
+  - Add empty app js to main page
 
 > Someday:
   - Logout

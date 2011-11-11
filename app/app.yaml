@@ -7,6 +7,10 @@ threadsafe: 1
 handlers:
 - url: /stylesheets
   static_dir: public/stylesheets
+- url: /js
+  static_dir: public/js
+- url: /qunit
+  static_dir: public/qunit
 - url: /.*
   script: main.app
 

@@ -1,0 +1,3 @@
+
+hello = (msg) -> alert(msg)
+
