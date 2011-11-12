@@ -14,43 +14,41 @@ jinja_environment = jinja2.Environment(
 
 class TemplatePage(webapp2.RequestHandler):
 
-    LOGIN_REQUIRED = True
+    login_required = True
     
     def make_context(self):
         return {}
     
     def get(self):
-        user = users.get_current_user()
-        if not user and self.LOGIN_REQUIRED:
-            #raise Exception("Hello")
-            self.response = webapp2.redirect(users.create_login_url(self.URL))
-            return self.response
-
-        template = jinja_environment.get_template(self.TEMPLATE_NAME)
+        requiring = self.login_required and blbr.require_login(redirect=self.url) or None
+        if requiring:
+            return requiring
+        template = jinja_environment.get_template(self.template_name)
         self.response.headers['Content-Type'] = 'text/html'
         self.response.out.write(template.render(self.make_context()))
-
+        return self.response
 
 class IndexPage(TemplatePage):
-    URL = "/"
-    TEMPLATE_NAME = 'index.html'
-    LOGIN_REQUIRED = False
+    url = "/"
+    template_name = 'index.html'
+    login_required = False
     
     def make_context(self):
-        return {'login_url':  users.create_login_url(DashboardPage.URL)}
+        return {'login_url':  users.create_login_url(DashboardPage.url)}
 
 
 class DashboardPage(TemplatePage):
-    URL = '/dashboard'
-    TEMPLATE_NAME = 'dashboard.html'
+    url = '/dashboard'
+    template_name = 'dashboard.html'
 
 class TestPage(TemplatePage):
-    URL = '/test'
-    LOGIN_REQUIRED = False
-    TEMPLATE_NAME = 'test.html'
+    url = '/test'
+    login_required = False
+    template_name = 'test.html'
 
 
-page_classes = [IndexPage, DashboardPage, TestPage]
+page_classes = [IndexPage, DashboardPage, TestPage,
+                blbr.UserController]
 
-# The name |app| is given at 'app.cfg' file.
-app = webapp2.WSGIApplication([(p.URL, p) for p in page_classes])
+# Don't change the name |app|. It is given in the 'app.cfg' file.
+app = blbr.to_application(page_classes)

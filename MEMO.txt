@@ -8,8 +8,21 @@ TODO:
   + Add empty index page that ask user to login.
   + Add empty main page which required login user.
   + Add bootstrap stack
-  - Add empty js test page
-  - Add empty app js to main page
+  + Add empty js test page
+  + Add empty app js to main page
+
+> Minimal Model and API:
+  + Define User Model
+  > Define UserController
+    + /r/<userid> for get
+    + /r/me for get
+  - Define Card Model
+  > Define CardController
+    - /r/<userid>/card for list (no pagination)
+    - /r/<userid>/card/<cardid> for get/put/delete
+
+> A simple CRUD for the Card model
+> Exercise Rounds
 
 > Someday:
   - Logout
