@@ -1,11 +1,18 @@
-
+# -*- coding: utf-8 -*-
 import logging
+import copy
+
 from google.appengine.ext import db
 from google.appengine.api import users
 
 import blbr.restics as restics
 import blbr.user
 
+WELCOME_CARDS = [
+    { u"face": u"Welcome!", u"back": u"ようこそ!" },
+    { u"face": u"The [bracket] is waiting for you.", u"back": u"[カッコ]があなたを待っています." },
+]
+            
 class Card(restics.Model):
     # XXX: should be handled by the metaclass
     created_at = db.DateTimeProperty()
@@ -19,10 +26,21 @@ class Card(restics.Model):
     def find_by_owner(cls, owner):
         return cls.all().filter("owner = ", owner).fetch(100, 0)
 
+    @classmethod
+    def welcome(cls, owner):
+        founds = cls.find_by_owner(owner)
+        if founds:
+            return
+        for c in WELCOME_CARDS:
+            fresh = copy.copy(c)
+            fresh["owner"] = owner
+            Card(**fresh).put()
+            
 
 class CardRepo(restics.Repo):
     url_pattern = '/r/([^/]+)/card(/([^/]+))?'
-
+    collection_namespace = 'r/me/cards'
+    
     def __init__(self):
         restics.Repo.__init__(self)
         self.parent = blbr.user.UserRepo()
@@ -46,7 +64,7 @@ class CardRepo(restics.Repo):
         })
         creating.put()
         return creating
-        
+
     def get(self, positionals):
         if len(positionals) < self.positional_count - 2:
             return None
@@ -55,8 +73,9 @@ class CardRepo(restics.Repo):
         if not owner:
             return None
         if not self.has_full_positional(positionals):
-            # No ID is given, so we return collecoooootion.
-            return Card.find_by_owner(owner.key()) or []
+            return restics.CollectionEnvelope(
+                self.collection_namespace,
+                Card.find_by_owner(owner.key()) or [])
         try:
             card_keylike = positionals[2]
             return Card.get(db.Key(card_keylike))

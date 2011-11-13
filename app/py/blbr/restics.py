@@ -24,25 +24,45 @@ class Model(db.Model):
         self._before_put(self)
         return db.Model.put(self)
 
-def key_to_serializable(key):
+
+class Repo(object):
+    @property
+    def account(self):
+        return users.get_current_user()
+
+    @property
+    def positional_count(self):
+        return self.url_pattern.count("(")
+    
+    def has_full_positional(self, positionals):
+        return len([p for p in positionals if p]) == self.positional_count
+
+
+class CollectionEnvelope(object):
+    def __init__(self, namespace, list):
+        self.namespace = namespace
+        self.list = list
+
+
+def _key_to_bag(key):
     return str(key)
 
-def user_to_serializable(user):
+def _user_to_bag(user):
     return {
         "nickname": user.nickname(),
         "email": user.email(),
         "user_id": user.user_id()
     }
 
-def datetime_to_serializable(d):
+def _datetime_to_bag(d):
     return d.isoformat()
 
 
 class ModelSerializer(object):
     to_map = {
-        users.User: user_to_serializable,
-        datetime.datetime: datetime_to_serializable,
-        db.Key: key_to_serializable,
+        users.User: _user_to_bag,
+        datetime.datetime: _datetime_to_bag,
+        db.Key: _key_to_bag,
     }
 
     def __init__(self):
@@ -82,29 +102,21 @@ class ModelSerializer(object):
             return str(property.key())
         return property
         
-    def _build_serializable(self, value, dict):
+    def _build_bag(self, value, dict):
         names = self.property_names_for(value)
         for name in names:
             dict[name] = self._serialize_property(getattr(value, name))
         return dict
-    
-    def to_serializable(self, obj):
-        if isinstance(obj, types.ListType):
-            return { "list": [self.to_serializable(i) for i in obj] }
-        return self._build_serializable(obj, {"id": str(obj.key()) })
 
+    def _build_collection_bag(self, env):
+        return {
+            env.namespace: [ self.to_bag(i) for i in env.list ]
+        }
 
-class Repo(object):
-    @property
-    def account(self):
-        return users.get_current_user()
-
-    @property
-    def positional_count(self):
-        return self.url_pattern.count("(")
-    
-    def has_full_positional(self, positionals):
-        return len([p for p in positionals if p]) == self.positional_count
+    def to_bag(self, obj):
+        if isinstance(obj, CollectionEnvelope):
+            return self._build_collection_bag(obj)
+        return self._build_bag(obj, {"id": str(obj.key()) })
 
 
 class Controller(webapp2.RequestHandler):
@@ -128,7 +140,7 @@ class Controller(webapp2.RequestHandler):
             self.response.status = 404
             return
         self.response.headers['Content-Type'] = 'text/json'
-        json.dump(self.ser.to_serializable(found), self.response.out)
+        json.dump(self.ser.to_bag(found), self.response.out)
 
     @wsgis.login_required
     def put(self, *args):
@@ -138,7 +150,7 @@ class Controller(webapp2.RequestHandler):
             self.response.status = 400
             return
         self.response.headers['Content-Type'] = 'text/json'
-        json.dump(self.ser.to_serializable(created), self.response.out)
+        json.dump(self.ser.to_bag(created), self.response.out)
         
     @classmethod
     def subclass_for(cls, a_repo_class):

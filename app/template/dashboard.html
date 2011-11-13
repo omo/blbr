@@ -6,8 +6,33 @@
   <script src="/js/lib/batman.jquery.js"></script>
   <script src="/js/app/blbr.js"></script>
   <script src="/js/app/dashboard.js"></script>
+  <style>
+#topbar-padding {
+  position: relative;
+  height: 50px; // Should be aligned to the topbar.
+}
+
+   </style>
 </head>
 <body>
-Here is a dashboard page.
+  <div id="container">
+    <div class="topbar" data-dropdown="dropdown">
+      <div class="topbar-inner">
+        <div class="container">
+          <h3><a href="#">BL;BR</a></h3>
+        </div>
+      </div><!-- /topbar-inner -->
+    </div>
+    <div class="container">
+      <header id="topbar-padding">
+      </header>
+      <div id="items">
+        <div data-foreach-card="Card.all">
+           <div data-bind="card.face" data-mixin="editable"></div>
+           <div data-bind="card.back" data-mixin="editable"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

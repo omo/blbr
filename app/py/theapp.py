@@ -29,6 +29,7 @@ class TemplatePage(webapp2.RequestHandler):
         self.response.out.write(template.render(self.make_context()))
         return self.response
 
+
 class IndexPage(TemplatePage):
     url = "/"
     template_name = 'index.html'
@@ -42,13 +43,22 @@ class DashboardPage(TemplatePage):
     url = '/dashboard'
     template_name = 'dashboard.html'
 
+    def get(self):
+        me = blbr.User.ensure_by_account(users.get_current_user())
+        blbr.Card.welcome(me)
+        return TemplatePage.get(self)
+        
+
 class TestPage(TemplatePage):
     url = '/test'
     login_required = False
     template_name = 'test.html'
 
 
-page_classes = [IndexPage, DashboardPage, TestPage,
+page_classes = [IndexPage,
+                DashboardPage,
+                TestPage,
+                blbr.CardController,
                 blbr.UserController]
 
 # Don't change the name |app|. It is given in the 'app.cfg' file.

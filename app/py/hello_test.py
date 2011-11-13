@@ -69,7 +69,7 @@ class SerializableTest(unittest.TestCase):
         new_user = blbr.User(account=users.User(email))
         new_user.put()
         existing_user = blbr.User.find_by_account(new_user.account)
-        rounded = round_serialization(self.ser.to_serializable(existing_user))
+        rounded = round_serialization(self.ser.to_bag(existing_user))
         self.assertIsNotNone(rounded['id'])
         self.assertEquals(rounded['account']['email'], email)
 
@@ -157,6 +157,11 @@ class CardTest(unittest.TestCase):
         self.assertIsNotNone(cardlike["id"])
         self.assertEquals(cardlike["face"], face)
         self.assertEquals(cardlike["back"], back)
+
+    def test_welcome(self):
+        [c.delete() for c in blbr.Card.all().fetch(100, 0)]
+        blbr.Card.welcome(self.alice)
+        self.assertEquals(len(blbr.Card.find_by_owner(self.alice)), 2)
         
     def test_web_hello(self):
         res = self.web.get('/r/me/card/%s' % str(self.alice_fixture.keys[0]))
@@ -168,7 +173,8 @@ class CardTest(unittest.TestCase):
         res = self.web.get('/r/%s/card' % str(self.alice.key()))
         self.assertRegexpMatches(res.status, '200')
         j = json.loads(res.body)
-        self.assertEquals(len(j["list"]), 1)
+        self.assertEquals(len(j["r/me/cards"]), 1)
+        self.assertEquals(j["r/me/cards"][0]["face"], 'Hello')
         
     def test_web_put_new(self):
         res = self.web.put('/r/me/card', json.dumps({'face': 'Hello'}))

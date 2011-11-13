@@ -22,7 +22,8 @@ TODO:
     - /r/<userid>/card/<cardid> for get/put/delete
 
   + Stop beign mixin ModelSerizable and turn it into ModelSerizer.
-  - Add loggin on error paths
+  + Add loggin on error paths
+  - Extract hard-coded CSS to a separate less file.
 
 > A simple CRUD for the Card model
 > Exercise Rounds
