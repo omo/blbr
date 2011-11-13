@@ -2,6 +2,7 @@
 #
 # This script is based on http://code.google.com/appengine/docs/python/tools/localunittesting.html
 #
+import logging
 import optparse
 import sys
 import unittest

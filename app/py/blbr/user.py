@@ -24,26 +24,31 @@ class User(restics.Model):
         created.put()
         return created
 
+
 class UserRepo(restics.Repo):
     url_pattern = '/r(/([^/]+))?'
 
-    @classmethod
-    def find_by_keylike(cls, keylike, me):
+    def find_by_keylike(self, keylike):
         if (keylike == "me"):
-            return User.ensure_by_account(me)
+            return self.me
         try:
             found = User.get(db.Key(keylike))
+            if not found or found.account != self.account:
+                return None
+            return found
         except db.BadKeyError:
             return None
-        if not found or found.account != me:
-            return None
-        return found
         
-    def get(self, params):
-        if not self.has_full_positional(params):
+    @property
+    def me(self):
+        return User.ensure_by_account(self.account)
+        
+    def get(self, positionals):
+        if not self.has_full_positional(positionals):
             # XXX: Should handle list
             return None
-        keylike = params[-1]
-        return self.find_by_keylike(keylike, self.account)
+        keylike = positionals[-1]
+        return self.find_by_keylike(keylike)
+
 
 UserController = restics.Controller.subclass_for(UserRepo)

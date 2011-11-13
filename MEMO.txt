@@ -21,7 +21,8 @@ TODO:
     + /r/<userid>/card for list (no pagination)
     - /r/<userid>/card/<cardid> for get/put/delete
 
-  - Stop beign mixin ModelSerizable and turn it into ModelSerizer.
+  + Stop beign mixin ModelSerizable and turn it into ModelSerizer.
+  - Add loggin on error paths
 
 > A simple CRUD for the Card model
 > Exercise Rounds

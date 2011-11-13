@@ -22,7 +22,7 @@ class Model(db.Model):
         
     def put(self):
         self._before_put(self)
-        db.Model.put(self)
+        return db.Model.put(self)
 
 def key_to_serializable(key):
     return str(key)
@@ -103,28 +103,43 @@ class Repo(object):
     def positional_count(self):
         return self.url_pattern.count("(")
     
-    def has_full_positional(self, params):
-        return len([p for p in params if p]) == self.positional_count
+    def has_full_positional(self, positionals):
+        return len([p for p in positionals if p]) == self.positional_count
 
 
 class Controller(webapp2.RequestHandler):
+
     @property
     def repo(self):
         if not hasattr(self, '_repo'):
             self._repo = self.repo_class()
         return self._repo
 
+    @property
+    def ser(self):
+        if not hasattr(self, '_ser'):
+            self._ser = ModelSerializer()
+        return self._ser
+        
     @wsgis.login_required
     def get(self, *args):
         found = self.repo.get(args)
         if None == found:
             self.response.status = 404
             return
-        ser = ModelSerializer()
         self.response.headers['Content-Type'] = 'text/json'
-        json.dump(ser.to_serializable(found), self.response.out)
-        return self.response
+        json.dump(self.ser.to_serializable(found), self.response.out)
 
+    @wsgis.login_required
+    def put(self, *args):
+        j = json.loads(self.request.body)
+        created = self.repo.put(args, j)
+        if not created:
+            self.response.status = 400
+            return
+        self.response.headers['Content-Type'] = 'text/json'
+        json.dump(self.ser.to_serializable(created), self.response.out)
+        
     @classmethod
     def subclass_for(cls, a_repo_class):
         class ResticController(cls):
