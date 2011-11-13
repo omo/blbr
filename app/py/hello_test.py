@@ -17,7 +17,6 @@ def round_serialization(obj):
     return json.loads(json.dumps(obj))
 
 class WSGITestHelper(object):
-
     def __init__(self, application):
         self.application = application
 
@@ -30,6 +29,11 @@ class WSGITestHelper(object):
 
     def post(self, url, body):
         return self._request_with_body(url, 'POST', body)
+
+    def delete(self, url):
+        req = webapp2.Request.blank(url)
+        req.method = 'DELETE'
+        return req.get_response(self.application)
 
     def _request_with_body(self, url, method, body):
         req = webapp2.Request.blank(url)
@@ -145,6 +149,8 @@ class CardFixture(object):
     def __init__(self, owner):
         self.keys = []
         self.keys.append(blbr.Card(owner=owner.key(), face="Hello", back="Konnichiwa").put())
+        self.keys.append(blbr.Card(owner=owner.key(), face="Good bye", back="Sayonara").put())        
+
 
 class CardTest(unittest.TestCase):
     def setUp(self):
@@ -179,7 +185,7 @@ class CardTest(unittest.TestCase):
         res = self.web.get('/r/%s/card' % str(self.alice.key()))
         self.assertRegexpMatches(res.status, '200')
         j = json.loads(res.body)
-        self.assertEquals(len(j["r/me/cards"]), 1)
+        self.assertEquals(len(j["r/me/cards"]), 2)
         self.assertEquals(j["r/me/cards"][0]["face"], 'Hello')
 
     fresh_card_literal = {"r/me/card": {'face': 'Hello'}}
@@ -214,7 +220,18 @@ class CardTest(unittest.TestCase):
         self.assertEquals(updated.face, 'Hello Again')
         self.assertEquals(updated.back, 'Konnichiwa Matane')
 
+    def test_web_put_for_bad_owner(self):
+        bad_key = self.bob_fixture.keys[0]
+        res = self.web.put('/r/me/card/%s' % str(bad_key), json.dumps(self.updating_card_literal))
+        self.assertRegexpMatches(res.status, '400')
+
     def test_web_put_bad(self):
         res = self.web.put('/r/me/card', json.dumps({"r/me/card": {'foo': 'bar'}}))
         self.assertRegexpMatches(res.status, '400')
         
+    def test_delete(self):
+        existing_key = self.alice_fixture.keys[0]
+        self.assertEquals(len(blbr.Card.find_by_owner(self.alice.key())), 2)
+        res = self.web.delete('/r/me/card/%s' % str(existing_key))
+        self.assertRegexpMatches(res.status, '200')
+        self.assertEquals(len(blbr.Card.find_by_owner(self.alice.key())), 1)

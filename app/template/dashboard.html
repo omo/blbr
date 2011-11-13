@@ -58,8 +58,9 @@
            <div class="card-edit" data-context="card" >
              <input class="card-edit-face" data-bind="card.face">
              <input class="card-edit-back" data-bind="card.back">
-             <input type="button" data-event-click="card.cancel" value="Cancel">
              <input type="button" data-event-click="card.save" value="Save">
+             <input type="button" data-event-click="card.cancel" value="Cancel">
+             <input type="button" data-event-click="card.destroy" data-confirm="Delete the card?" value="Delete">
            </div>
         </div>
       </div>

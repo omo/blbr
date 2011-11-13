@@ -22,6 +22,9 @@ class Card(restics.Model):
     face = db.TextProperty(required=True)
     back = db.TextProperty()
 
+    def owned_by(self, mayowner):
+        return self.owner.account == mayowner.account
+
     @classmethod
     def find_by_owner(cls, owner):
         return cls.all().filter("owner = ", owner).fetch(100, 0)
@@ -46,9 +49,16 @@ class CardRepo(restics.Repo):
         restics.Repo.__init__(self)
         self.parent = blbr.user.UserRepo()
 
+    def delete_by_keylike(self, keylike):
+        deleting = Card.get(db.Key(keylike))
+        if (not deleting) or (not deleting.owned_by(self.parent.me)):
+            return False
+        deleting.delete()
+        return True
+    
     def update_by_bag(self, keylike, bag):
         updating = Card.get(db.Key(keylike))
-        if not updating:
+        if (not updating) or (not updating.owned_by(self.parent.me)):
             return None
         if bag.get('face'):
             updating.face = bag.get('face')
@@ -101,14 +111,27 @@ class CardRepo(restics.Repo):
         owner = self.parent.find_by_keylike(positionals[0])
         if not owner:
             return None
+        if not self.has_full_positional(positionals):
+            logging.info("CardRepo.put: Missing ID for PUT")
+            return None
         try:
-            if not self.has_full_positional(positionals):
-                logging.info("CardRepo.put: Missing ID for PUT")
-                return None
             return self.update_by_bag(positionals[-1], bag)
         except db.BadValueError as e:
             logging.info("CardRepo.put: BadValueError %s", e)
             return None
+
+    def delete(self, positionals):
+        owner = self.parent.find_by_keylike(positionals[0])
+        if not owner:
+            return False
+        if not self.has_full_positional(positionals):
+            logging.info("CardRepo.delete: Missing ID for DELETE")
+            return False
+        try:
+            return self.delete_by_keylike(positionals[-1])
+        except db.BadValueError as e:
+            logging.info("CardRepo.delete: BadValueError %s", e)
+            return False
 
 
 CardController = restics.Controller.subclass_for(CardRepo)

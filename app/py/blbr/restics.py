@@ -143,6 +143,13 @@ class Controller(webapp2.RequestHandler):
         json.dump(self.ser.to_bag(found), self.response.out)
 
     @wsgis.login_required
+    def delete(self, *args):
+        if not self.repo.delete(args):
+            self.response.status = 400
+            return
+        self.response.status = 200
+
+    @wsgis.login_required
     def put(self, *args):
         return self._post_or_put(self.repo.put, args)
 
@@ -150,7 +157,6 @@ class Controller(webapp2.RequestHandler):
     def post(self, *args):
         return self._post_or_put(self.repo.post, args)
 
-    @wsgis.login_required
     def _post_or_put(self, method, args):
         j = json.loads(self.request.body)
         created = method(args, j[self.repo.item_namespace])

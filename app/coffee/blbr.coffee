@@ -13,10 +13,13 @@ class Blbr.Card extends Batman.Model
   face: ''
   back: ''
 
-  edit: -> @set 'editing', true
+  edit: (target) ->
+    @set 'editing', true
+    $(target).find('input').first().select()
   cancel: (target, evt) ->
     evt.stopPropagation() if evt
-    @set 'editing', false
+    # XXX: check dirtiness
+    @load => @set 'editing', false
   save: ->
     super =>
       @set 'editing', false
