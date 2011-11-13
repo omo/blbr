@@ -40,6 +40,7 @@ class Card(restics.Model):
 class CardRepo(restics.Repo):
     url_pattern = '/r/([^/]+)/card(/([^/]+))?'
     collection_namespace = 'r/me/cards'
+    item_namespace = 'r/me/card'
     
     def __init__(self):
         restics.Repo.__init__(self)
@@ -83,15 +84,28 @@ class CardRepo(restics.Repo):
             logging.info("CardRepo.get: BadKeyError %s" % e)
             return None
 
+    def post(self, positionals, bag):
+        owner = self.parent.find_by_keylike(positionals[0])
+        if not owner:
+            return None
+        if self.has_full_positional(positionals):
+            logging.info("CardRepo.post: Received redundnant ID for POST")
+            return None
+        try:
+            return self.create_by_bag(owner, bag)
+        except db.BadValueError as e:
+            logging.info("CardRepo.post: BadValueError %s", e)
+            return None
+
     def put(self, positionals, bag):
-        user_keylike = positionals[0]
-        owner = self.parent.find_by_keylike(user_keylike)
+        owner = self.parent.find_by_keylike(positionals[0])
         if not owner:
             return None
         try:
-            if self.has_full_positional(positionals):
-                return self.update_by_bag(positionals[-1], bag)
-            return self.create_by_bag(owner, bag)
+            if not self.has_full_positional(positionals):
+                logging.info("CardRepo.put: Missing ID for PUT")
+                return None
+            return self.update_by_bag(positionals[-1], bag)
         except db.BadValueError as e:
             logging.info("CardRepo.put: BadValueError %s", e)
             return None

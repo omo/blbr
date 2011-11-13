@@ -1,4 +1,4 @@
 
-BlBr.run();
+$(document).ready -> Blbr.run();
 
 

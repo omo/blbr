@@ -1,19 +1,25 @@
 
-hello = (msg) -> alert(msg)
-
-class BlBr extends Batman.App
+class Blbr extends Batman.App
   @global yes
-  @root 'todos#index'
+  @root 'cards#index'
 
-class BlBr.Card extends Batman.Model
-  @global yes
-  @persist Batman.RestStorage
+class JsonRestStorage extends Batman.RestStorage
+  serializeAsForm: false
+
+class Blbr.Card extends Batman.Model
+  @persist JsonRestStorage
   @storageKey: 'r/me/card'
   @encode 'owner', 'face', 'back'
+  face: ''
+  back: ''
 
-class BlBr.CardController extends Batman.Controller
-  emptyTodo: null
-
+class Blbr.CardsController extends Batman.Controller
   index: ->
+    @set 'emptyCard', new Blbr.Card()
+    @render no
+
   create: =>
+    @emptyCard.save (error, record) =>
+      throw error if error
+      @set 'emptyCard', new Blbr.Card()
 

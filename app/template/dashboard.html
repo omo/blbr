@@ -1,5 +1,6 @@
 <html>
 <head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <link href="/stylesheets/bootstrap.css" rel="stylesheet">
   <script src="/js/lib/jquery-1.7.js"></script>
   <script src="/js/lib/batman.js"></script>
@@ -19,17 +20,21 @@
     <div class="topbar" data-dropdown="dropdown">
       <div class="topbar-inner">
         <div class="container">
-          <h3><a href="#">BL;BR</a></h3>
+          <h3><a href="#">Blank Bracket</a></h3>
         </div>
       </div><!-- /topbar-inner -->
     </div>
     <div class="container">
-      <header id="topbar-padding">
-      </header>
+      <header id="topbar-padding"></header>
+      <form data-formfor-card="controllers.cards.emptyCard" data-event-submit="controllers.cards.create">
+        <input class="new-item" placeholder="Add a original text here" data-bind="card.face" />
+        <input class="new-item" placeholder="対訳をかく" data-bind="card.back" />
+        <input type="submit" />
+      </form>
       <div id="items">
         <div data-foreach-card="Card.all">
-           <div data-bind="card.face" data-mixin="editable"></div>
-           <div data-bind="card.back" data-mixin="editable"></div>
+           <div data-bind="card.face"></div>
+           <div data-bind="card.back"></div>
         </div>
       </div>
     </div>

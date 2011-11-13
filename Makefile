@@ -15,6 +15,8 @@ CO_SRC := ${wildcard ${CO_SRC_DIR}/*.coffee}
 CO_BIN := ${patsubst ${CO_SRC_DIR}/%.coffee,${CO_BIN_DIR}/%.js,${CO_SRC}}
 
 
+prerun: pytest compile
+
 pytest:
 	python ./app/py/runtest.py ${SDK_DIR}
 

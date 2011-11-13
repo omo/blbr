@@ -144,8 +144,16 @@ class Controller(webapp2.RequestHandler):
 
     @wsgis.login_required
     def put(self, *args):
+        return self._post_or_put(self.repo.put, args)
+
+    @wsgis.login_required
+    def post(self, *args):
+        return self._post_or_put(self.repo.post, args)
+
+    @wsgis.login_required
+    def _post_or_put(self, method, args):
         j = json.loads(self.request.body)
-        created = self.repo.put(args, j)
+        created = method(args, j[self.repo.item_namespace])
         if not created:
             self.response.status = 400
             return
