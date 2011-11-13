@@ -53,7 +53,7 @@ class CardRepo(restics.Repo):
         if bag.get('face'):
             updating.face = bag.get('face')
         if bag.get('back'):
-            updating.face = bag.get('back')
+            updating.back = bag.get('back')
         updating.put()
         return updating
 

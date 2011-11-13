@@ -1,5 +1,6 @@
 <html>
 <head>
+  <title>BL;BR</title>
   <meta http-equiv="content-type" content="text/html; charset=UTF-8">
   <link href="/stylesheets/bootstrap.css" rel="stylesheet">
   <script src="/js/lib/jquery-1.7.js"></script>
@@ -11,6 +12,22 @@
 #topbar-padding {
   position: relative;
   height: 50px; // Should be aligned to the topbar.
+}
+
+.card-edit {
+  display: none;  
+}
+
+.card-view {
+  display: block;
+}
+
+.editing .card-edit {
+  display: block; 
+}
+
+.editing .card-view {
+  display: none; 
 }
 
    </style>
@@ -32,9 +49,18 @@
         <input type="submit" />
       </form>
       <div id="items">
-        <div data-foreach-card="Card.all">
-           <div data-bind="card.face"></div>
-           <div data-bind="card.back"></div>
+        <div data-foreach-card="Card.all" data-event-click="card.edit" class="card-item"
+             data-addclass-editing="card.editing">
+           <div class="card-view">
+             <div class="card-face" data-bind="card.face"></div>
+             <div class="card-back" data-bind="card.back"></div>
+           </div>
+           <div class="card-edit" data-context="card" >
+             <input class="card-edit-face" data-bind="card.face">
+             <input class="card-edit-back" data-bind="card.back">
+             <input type="button" data-event-click="card.cancel" value="Cancel">
+             <input type="button" data-event-click="card.save" value="Save">
+           </div>
         </div>
       </div>
     </div>

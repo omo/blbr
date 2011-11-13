@@ -183,7 +183,7 @@ class CardTest(unittest.TestCase):
         self.assertEquals(j["r/me/cards"][0]["face"], 'Hello')
 
     fresh_card_literal = {"r/me/card": {'face': 'Hello'}}
-    updating_card_literal = {"r/me/card": {'face': 'Hello Again'}}
+    updating_card_literal = {"r/me/card": {'face': 'Hello Again', 'back': 'Konnichiwa Matane' }}
     
     def test_web_post_new(self):
         res = self.web.post('/r/me/card', json.dumps(self.fresh_card_literal))
@@ -212,6 +212,7 @@ class CardTest(unittest.TestCase):
         updated = blbr.Card.get(existing_key)
         self.assertEquals(updated.key(), existing_key)
         self.assertEquals(updated.face, 'Hello Again')
+        self.assertEquals(updated.back, 'Konnichiwa Matane')
 
     def test_web_put_bad(self):
         res = self.web.put('/r/me/card', json.dumps({"r/me/card": {'foo': 'bar'}}))
