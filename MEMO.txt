@@ -18,8 +18,10 @@ TODO:
     + /r/me for get
   - Define Card Model
   > Define CardController
-    - /r/<userid>/card for list (no pagination)
+    + /r/<userid>/card for list (no pagination)
     - /r/<userid>/card/<cardid> for get/put/delete
+
+  - Stop beign mixin ModelSerizable and turn it into ModelSerizer.
 
 > A simple CRUD for the Card model
 > Exercise Rounds

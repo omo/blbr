@@ -3,6 +3,7 @@ import webapp2
 import json
 import datetime
 import re
+import types
 
 from google.appengine.api import users
 from google.appengine.ext import db
@@ -37,34 +38,39 @@ def datetime_to_serializable(d):
     return d.isoformat()
 
 
-class ModelSerizable(object):
+class ModelSerializer(object):
     to_map = {
         users.User: user_to_serializable,
         datetime.datetime: datetime_to_serializable,
         db.Key: key_to_serializable,
     }
 
-    @staticmethod
-    def _is_listable_property(property):
+    def __init__(self):
+        self._property_name_cache = {}
+        
+    def _is_listable_property(self, property):
         # Don't list internal properties like db._ReverseReferenceProperty
         return isinstance(property, db.Property) and property.__class__.__name__[0] != '_'
-    
-    @staticmethod
-    def _populate_property_names(list, cls):
-        names = [k for k,v in cls.__dict__.items() if ModelSerizable._is_listable_property(v)]
-        return list + names + reduce(ModelSerizable._populate_property_names, cls.__bases__, [])
 
-    @classmethod
-    def property_names(cls):
-        if not hasattr(cls, '_propety_names'):
-            cls._propety_names = ModelSerizable._populate_property_names([], cls)
-            cls._propety_names.sort()
-        return cls._propety_names
+    def _populate_property_names(self, list, cls):
+        names = [k for k,v in cls.__dict__.items() if self._is_listable_property(v)]
+        return list + names + reduce(self._populate_property_names, cls.__bases__, [])
 
-    @classmethod
-    def _serialize_property(cls, property):
+    def property_names_for_class(self, cls):
+        found = self._property_name_cache.get(cls)
+        if found:
+            return found
+        names = self._populate_property_names([], cls)
+        names.sort()
+        self._property_name_cache[cls] = names
+        return names
+
+    def property_names_for(self, value):
+        return self.property_names_for_class(value.__class__)
+
+    def _serialize_property(self, property):
         # XXX: covnersion should be opt-in.
-        to = ModelSerizable.to_map.get(property.__class__)
+        to = self.to_map.get(property.__class__)
         if to:
             return to(property)
         # XXX: Sub-models should be security-aware.  For example, an
@@ -76,17 +82,16 @@ class ModelSerizable(object):
             return str(property.key())
         return property
         
-    @classmethod
-    def _build_serializable(cls, value, dict):
-        names = cls.property_names()
+    def _build_serializable(self, value, dict):
+        names = self.property_names_for(value)
         for name in names:
-            dict[name] = cls._serialize_property(getattr(value, name))
+            dict[name] = self._serialize_property(getattr(value, name))
         return dict
     
-    def to_serializable(self):
-        #if isinstance(self, list):
-        #    return { list: [i.to_serializable() for i in self] }
-        return self._build_serializable(self, {"id": str(self.key()) })
+    def to_serializable(self, obj):
+        if isinstance(obj, types.ListType):
+            return { "list": [self.to_serializable(i) for i in obj] }
+        return self._build_serializable(obj, {"id": str(obj.key()) })
 
 
 class Repo(object):
@@ -99,7 +104,7 @@ class Repo(object):
         return self.url_pattern.count("(")
     
     def has_full_positional(self, params):
-        return len(params) == self.positional_count
+        return len([p for p in params if p]) == self.positional_count
 
 
 class Controller(webapp2.RequestHandler):
@@ -112,11 +117,12 @@ class Controller(webapp2.RequestHandler):
     @wsgis.login_required
     def get(self, *args):
         found = self.repo.get(args)
-        if not found:
+        if None == found:
             self.response.status = 404
             return
+        ser = ModelSerializer()
         self.response.headers['Content-Type'] = 'text/json'
-        json.dump(found.to_serializable(), self.response.out)
+        json.dump(ser.to_serializable(found), self.response.out)
         return self.response
 
     @classmethod

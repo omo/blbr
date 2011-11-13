@@ -10,6 +10,7 @@ from google.appengine.ext import db
 from google.appengine.ext import testbed
 
 import blbr
+import blbr.restics
 
 
 def round_serialization(obj):
@@ -52,7 +53,7 @@ class TestBedHelper(object):
 class SerializableTest(unittest.TestCase):
     def setUp(self):
         self.helper = TestBedHelper()
-        
+        self.ser = blbr.restics.ModelSerializer()        
     def tearDown(self):
         self.helper.deactivate()
 
@@ -61,7 +62,7 @@ class SerializableTest(unittest.TestCase):
         new_user = blbr.User(account=users.User(email))
         new_user.put()
         existing_user = blbr.User.find_by_account(new_user.account)
-        rounded = round_serialization(existing_user.to_serializable())
+        rounded = round_serialization(self.ser.to_serializable(existing_user))
         self.assertIsNotNone(rounded['id'])
         self.assertEquals(rounded['account']['email'], email)
 
@@ -76,7 +77,8 @@ class UserTest(unittest.TestCase):
         self.helper.deactivate()
 
     def test_property_names(self):
-        names = blbr.User.property_names()
+        ser = blbr.restics.ModelSerializer()
+        names = ser.property_names_for_class(blbr.User)
         self.assertEquals(names, ['account', 'created_at', 'updated_at'])
 
     def create_bob_user(self):
@@ -138,14 +140,23 @@ class CardTest(unittest.TestCase):
         self.web = WSGITestHelper(blbr.wsgis.to_application([blbr.CardController]))
         self.bob_email = "bob@example.com"
         self.alice = self.helper.create_current_user_model()
-        self.fixture = CardFixture(self.alice)
+        self.alice_fixture = CardFixture(self.alice)
+        self.bob = blbr.User.ensure_by_account(account=users.User(email=self.bob_email))
+        self.bob_fixture = CardFixture(self.bob)
                                    
     def tearDown(self):
         self.helper.deactivate()
 
     def test_web_hello(self):
-        res = self.web.get('/r/me/card/%s' % str(self.fixture.keys[0]))
+        res = self.web.get('/r/me/card/%s' % str(self.alice_fixture.keys[0]))
         self.assertRegexpMatches(res.status, '200')
         j = json.loads(res.body)
         self.assertEquals(j["face"], "Hello")
         self.assertEquals(j["back"], "Konnichiwa")
+
+    def test_web_list(self):
+        res = self.web.get('/r/%s/card' % str(self.alice.key()))
+        self.assertRegexpMatches(res.status, '200')
+        j = json.loads(res.body)
+        self.assertEquals(len(j["list"]), 1)
+        

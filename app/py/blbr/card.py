@@ -5,7 +5,7 @@ from google.appengine.api import users
 import blbr.restics as restics
 import blbr.user
 
-class Card(db.Model, restics.ModelSerizable):
+class Card(db.Model):
     # XXX: should be handled by the metaclass
     created_at = db.DateTimeProperty()
     updated_at = db.DateTimeProperty()
@@ -16,7 +16,7 @@ class Card(db.Model, restics.ModelSerizable):
 
     @classmethod
     def find_by_owner(cls, owner):
-        return cls.all().filter("owner = ", owner).fetch()
+        return cls.all().filter("owner = ", owner).fetch(100, 0)
 
 
 class CardRepo(restics.Repo):
@@ -30,7 +30,7 @@ class CardRepo(restics.Repo):
         if not owner:
             return None
         if not self.has_full_positional(params):
-            return Card.find_by_owner(owner.key())
+            return Card.find_by_owner(owner.key()) or []
         try:
             card_keylike = params[2]
             return Card.get(db.Key(card_keylike))

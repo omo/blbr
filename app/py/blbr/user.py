@@ -4,7 +4,7 @@ from google.appengine.api import users
 
 import blbr.restics as restics
 
-class User(restics.Model, restics.ModelSerizable):
+class User(restics.Model):
     # XXX: should be handled by the metaclass
     created_at = db.DateTimeProperty()
     updated_at = db.DateTimeProperty()
