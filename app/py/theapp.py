@@ -5,6 +5,7 @@ import jinja2
 from google.appengine.api import users
 
 import blbr
+import blbr.wsgis
 
 
 jinja_environment = jinja2.Environment(
@@ -20,7 +21,7 @@ class TemplatePage(webapp2.RequestHandler):
         return {}
     
     def get(self):
-        requiring = self.login_required and blbr.require_login(redirect=self.url) or None
+        requiring = self.login_required and blbr.wsgis.require_login(redirect=self.url) or None
         if requiring:
             return requiring
         template = jinja_environment.get_template(self.template_name)
@@ -51,4 +52,4 @@ page_classes = [IndexPage, DashboardPage, TestPage,
                 blbr.UserController]
 
 # Don't change the name |app|. It is given in the 'app.cfg' file.
-app = blbr.to_application(page_classes)
+app = blbr.wsgis.to_application(page_classes)

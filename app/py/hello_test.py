@@ -45,6 +45,9 @@ class TestBedHelper(object):
         self.disable_current_user()
         self.testbed.deactivate()
 
+    def create_current_user_model(self):
+        return blbr.User.ensure_by_account(users.get_current_user())
+
 
 class SerializableTest(unittest.TestCase):
     def setUp(self):
@@ -63,18 +66,18 @@ class SerializableTest(unittest.TestCase):
         self.assertEquals(rounded['account']['email'], email)
 
 
-class UserTest(unittest.TestCase, TestBedHelper):
+class UserTest(unittest.TestCase):
     def setUp(self):
         self.helper = TestBedHelper()
-        self.web = WSGITestHelper(blbr.to_application([blbr.UserController]))
+        self.web = WSGITestHelper(blbr.wsgis.to_application([blbr.UserController]))
         self.bob_email = "bob@example.com"
 
     def tearDown(self):
         self.helper.deactivate()
 
-    def test_list_property_names(self):
-        names = blbr.User.list_property_names()
-        self.assertEquals(names, ['account'])
+    def test_property_names(self):
+        names = blbr.User.property_names()
+        self.assertEquals(names, ['account', 'created_at', 'updated_at'])
 
     def create_bob_user(self):
         account = users.User(self.bob_email)
@@ -92,13 +95,17 @@ class UserTest(unittest.TestCase, TestBedHelper):
         self.assertIsNotNone(u)
         self.assertTrue(u.is_saved())
 
+    def test_web_list(self):
+        res = self.web.get('/r')
+        self.assertRegexpMatches(res.status, '404')
+
     def test_web_get_me(self):
         res = self.web.get('/r/me')
         self.assertRegexpMatches(res.status, '200')
         self.assertEquals(self.helper.user_email, json.loads(res.body)["account"]["email"])
 
     def test_web_get_me(self):
-        alice = blbr.User.ensure_by_account(users.get_current_user())
+        alice = self.helper.create_current_user_model()
         res = self.web.get('/r/%s' % str(alice.key()))
         self.assertRegexpMatches(res.status, '200')
         self.assertEquals(self.helper.user_email, json.loads(res.body)["account"]["email"])
@@ -118,3 +125,27 @@ class UserTest(unittest.TestCase, TestBedHelper):
         res = self.web.get('/r/me')
         self.assertRegexpMatches(res.status, '400')
 
+
+class CardFixture(object):
+    def __init__(self, owner):
+        self.keys = []
+        self.keys.append(blbr.Card(owner=owner.key(), face="Hello", back="Konnichiwa").put())
+
+
+class CardTest(unittest.TestCase):
+    def setUp(self):
+        self.helper = TestBedHelper()
+        self.web = WSGITestHelper(blbr.wsgis.to_application([blbr.CardController]))
+        self.bob_email = "bob@example.com"
+        self.alice = self.helper.create_current_user_model()
+        self.fixture = CardFixture(self.alice)
+                                   
+    def tearDown(self):
+        self.helper.deactivate()
+
+    def test_web_hello(self):
+        res = self.web.get('/r/me/card/%s' % str(self.fixture.keys[0]))
+        self.assertRegexpMatches(res.status, '200')
+        j = json.loads(res.body)
+        self.assertEquals(j["face"], "Hello")
+        self.assertEquals(j["back"], "Konnichiwa")
