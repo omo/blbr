@@ -58,7 +58,7 @@ class TestPage(TemplatePage):
 page_classes = [IndexPage,
                 DashboardPage,
                 TestPage,
-                blbr.CardCollController, blbr.CardController, 
+                blbr.CardController, blbr.CardCollectionController, 
                 blbr.UserController]
 
 # Don't change the name |app|. It is given in the 'app.cfg' file.

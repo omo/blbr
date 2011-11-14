@@ -51,7 +51,7 @@ class User(restics.Model):
 
 
 class UserRepo(restics.Repo):
-    url_pattern = '/r/<user_id>'
+    item_url_pattern = '/r/<user_id>'
 
     def find_by_keylike(self, keylike):
         if (keylike == "me"):
@@ -75,4 +75,4 @@ class UserRepo(restics.Repo):
         return self.find_by_keylike(params['user_id'])
         
 
-UserController = restics.controller_for(UserRepo)
+UserController = restics.item_controller_for(UserRepo)

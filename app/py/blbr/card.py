@@ -41,7 +41,7 @@ class Card(restics.Model):
             
 
 class CardRepo(restics.Repo):
-    url_pattern = '/r/<user_id>/card/<card_id>'
+    item_url_pattern = '/r/<user_id>/card/<card_id>'
     item_namespace = 'r/me/card'
     collection_url_pattern = '/r/<user_id>/card'
     collection_namespace = 'r/me/cards'
@@ -142,5 +142,5 @@ class CardRepo(restics.Repo):
             return False
 
 
-CardController = restics.controller_for(CardRepo)
+CardController = restics.item_controller_for(CardRepo)
 CardCollectionController = restics.collection_controller_for(CardRepo)

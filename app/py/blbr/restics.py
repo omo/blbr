@@ -30,13 +30,6 @@ class Repo(object):
     def account(self):
         return users.get_current_user()
 
-    @property
-    def positional_count(self):
-        return self.url_pattern.count("(")
-    
-    def has_full_positional(self, positionals):
-        return len([p for p in positionals if p]) == self.positional_count
-
 
 class CollectionEnvelope(object):
     def __init__(self, namespace, list):
@@ -185,9 +178,9 @@ class CollectionController(Controller):
         return self._get_or_list(self.repo.list, args, kwargs)
 
 
-def controller_for(a_repo_class):
+def item_controller_for(a_repo_class):
     class ResticItemController(ItemController):
-        url = a_repo_class.url_pattern
+        url = a_repo_class.item_url_pattern
         repo_class = a_repo_class
     return ResticItemController
 
