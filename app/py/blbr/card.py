@@ -110,6 +110,7 @@ class CardRepo(restics.Repo):
     def put(self, positionals, bag):
         owner = self.parent.find_by_keylike(positionals[0])
         if not owner:
+            logging.info(self.__class__.__name__, ".put: No owner")            
             return None
         if not self.has_full_positional(positionals):
             logging.info("CardRepo.put: Missing ID for PUT")
@@ -134,4 +135,4 @@ class CardRepo(restics.Repo):
             return False
 
 
-CardController = restics.Controller.subclass_for(CardRepo)
+CardController = restics.controller_for(CardRepo)

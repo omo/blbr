@@ -74,6 +74,9 @@ class ModelSerializer(object):
 
     def _populate_property_names(self, list, cls):
         names = [k for k,v in cls.__dict__.items() if self._is_listable_property(v)]
+        if hasattr(cls, 'excluding_properties'):
+            for e in cls.excluding_properties:
+                names.remove(e)
         return list + names + reduce(self._populate_property_names, cls.__bases__, [])
 
     def property_names_for_class(self, cls):
@@ -102,7 +105,7 @@ class ModelSerializer(object):
             return str(property.key())
         return property
         
-    def _build_bag(self, value, dict):
+    def _build_model_bag(self, value, dict):
         names = self.property_names_for(value)
         for name in names:
             dict[name] = self._serialize_property(getattr(value, name))
@@ -116,7 +119,12 @@ class ModelSerializer(object):
     def to_bag(self, obj):
         if isinstance(obj, CollectionEnvelope):
             return self._build_collection_bag(obj)
-        return self._build_bag(obj, {"id": str(obj.key()) })
+        if isinstance(obj, db.Model):
+            return self._build_model_bag(obj, {"id": str(obj.key()) })
+        if hasattr(obj, 'to_bag'):
+            return obj.to_bag()
+        raise Exception("Couldn't convert to a bag")
+        
 
 
 class Controller(webapp2.RequestHandler):
@@ -172,3 +180,7 @@ class Controller(webapp2.RequestHandler):
             url = a_repo_class.url_pattern
             repo_class = a_repo_class
         return ResticController
+
+
+def controller_for(repo_cls):
+    return Controller.subclass_for(repo_cls)

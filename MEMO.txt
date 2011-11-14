@@ -23,6 +23,15 @@ TODO:
 
   + Stop beign mixin ModelSerizable and turn it into ModelSerizer.
   + Add loggin on error paths
+
+- Rewrite pattern with named capture
+> Exercise mode
+  + Add "Level" model - which is embeded into User model.
+  - Add Card.next_round, Card.maturity
+
+
+
+> A bit serious about UI
   - Extract hard-coded CSS to a separate less file.
 
 > A simple CRUD for the Card model

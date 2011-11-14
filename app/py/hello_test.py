@@ -70,17 +70,20 @@ class TestBedHelper(object):
 class SerializableTest(unittest.TestCase):
     def setUp(self):
         self.helper = TestBedHelper()
-        self.ser = blbr.restics.ModelSerializer()        
+        self.ser = blbr.restics.ModelSerializer()
+
     def tearDown(self):
         self.helper.deactivate()
 
     def test_hello(self):
         email = "bob@example.com"
         new_user = blbr.User(account=users.User(email))
+        self.assertEquals(new_user.level_round, 0)
         new_user.put()
         existing_user = blbr.User.find_by_account(new_user.account)
         rounded = round_serialization(self.ser.to_bag(existing_user))
         self.assertIsNotNone(rounded['id'])
+        self.assertIsNone(rounded.get('level_round'))
         self.assertEquals(rounded['account']['email'], email)
 
 
@@ -143,6 +146,25 @@ class UserTest(unittest.TestCase):
         self.helper.disable_current_user()
         res = self.web.get('/r/me')
         self.assertRegexpMatches(res.status, '400')
+
+
+class LevelTest(unittest.TestCase):
+    def setUp(self):
+        self.helper = TestBedHelper()
+        self.web = WSGITestHelper(blbr.wsgis.to_application([blbr.LevelController]))
+
+    def tearDown(self):
+        self.helper.deactivate()
+
+    def test_get_hello(self):
+        res = self.web.get('/r/me/level')
+        j = json.loads(res.body)
+        self.assertEquals(j['round'], 0)
+
+    def test_put_hello(self):
+        res = self.web.put('/r/me/level', json.dumps({'r/me/level': { 'round': 5 }}))
+        self.assertEquals(json.loads(res.body)['round'], 5)
+        self.assertEquals(json.loads(self.web.get('/r/me/level').body)['round'], 5)
 
 
 class CardFixture(object):
