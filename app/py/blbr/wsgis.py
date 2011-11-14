@@ -21,4 +21,4 @@ def login_required(func, **deco_kwargs):
     return decorated_view
 
 def to_application(handler_classes):
-    return webapp2.WSGIApplication([(p.url, p) for p in handler_classes])
+    return webapp2.WSGIApplication([webapp2.Route(p.url, handler=p) for p in handler_classes])

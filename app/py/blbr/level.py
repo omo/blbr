@@ -1,4 +1,6 @@
 
+import logging
+
 import blbr.user
 import blbr.restics as restics
 import blbr.wsgis as wsgis
@@ -6,7 +8,7 @@ import blbr.wsgis as wsgis
 from google.appengine.ext import db
 
 class LevelRepo(restics.Repo):
-    url_pattern = '/r/([^/]+)/level'
+    url_pattern = '/r/<user_id:[^/]+>/level'
     item_namespace = 'r/me/level'
     
     def __init__(self):
@@ -14,22 +16,16 @@ class LevelRepo(restics.Repo):
         self.parent = blbr.user.UserRepo()
 
     @wsgis.login_required
-    def get(self, positionals):
-        if not self.has_full_positional(positionals):
-            logging.info(self.__class__.__name__, ".get: Missing ID for GET")
-            return None
-        owner = self.parent.find_by_keylike(positionals[-1])
+    def get(self, params):
+        owner = self.parent.get(params)
         if not owner:
             logging.info(self.__class__.__name__, ".get: No owner")
             return None
         return owner.level
 
     @wsgis.login_required
-    def put(self, positionals, bag):
-        if not self.has_full_positional(positionals):
-            logging.info(self.__class__.__name__, ".put: Missing ID for PUT")
-            return None
-        owner = self.parent.find_by_keylike(positionals[0])
+    def put(self, params, bag):
+        owner = self.parent.get(params)
         if not owner:
             logging.info(self.__class__.__name__, ".put: No owner")
             return None

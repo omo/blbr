@@ -158,11 +158,13 @@ class LevelTest(unittest.TestCase):
 
     def test_get_hello(self):
         res = self.web.get('/r/me/level')
+        self.assertRegexpMatches(res.status, '200')
         j = json.loads(res.body)
         self.assertEquals(j['round'], 0)
 
     def test_put_hello(self):
         res = self.web.put('/r/me/level', json.dumps({'r/me/level': { 'round': 5 }}))
+        self.assertRegexpMatches(res.status, '200')
         self.assertEquals(json.loads(res.body)['round'], 5)
         self.assertEquals(json.loads(self.web.get('/r/me/level').body)['round'], 5)
 
@@ -177,7 +179,9 @@ class CardFixture(object):
 class CardTest(unittest.TestCase):
     def setUp(self):
         self.helper = TestBedHelper()
-        self.web = WSGITestHelper(blbr.wsgis.to_application([blbr.CardController]))
+        self.web = WSGITestHelper(blbr.wsgis.to_application([blbr.CardController,
+                                                             blbr.CardCollectionController]))
+        
         self.bob_email = "bob@example.com"
         self.alice = self.helper.create_current_user_model()
         self.alice_fixture = CardFixture(self.alice)
@@ -192,6 +196,13 @@ class CardTest(unittest.TestCase):
         self.assertEquals(cardlike["face"], face)
         self.assertEquals(cardlike["back"], back)
 
+    def test_web_list(self):
+        res = self.web.get('/r/%s/card' % str(self.alice.key()))
+        self.assertRegexpMatches(res.status, '200')
+        j = json.loads(res.body)
+        self.assertEquals(len(j["r/me/cards"]), 2)
+        self.assertEquals(j["r/me/cards"][0]["face"], 'Hello')
+
     def test_welcome(self):
         [c.delete() for c in blbr.Card.all().fetch(100, 0)]
         blbr.Card.welcome(self.alice)
@@ -203,12 +214,6 @@ class CardTest(unittest.TestCase):
         j = json.loads(res.body)
         self.assert_looking_like_a_card(j)
         
-    def test_web_list(self):
-        res = self.web.get('/r/%s/card' % str(self.alice.key()))
-        self.assertRegexpMatches(res.status, '200')
-        j = json.loads(res.body)
-        self.assertEquals(len(j["r/me/cards"]), 2)
-        self.assertEquals(j["r/me/cards"][0]["face"], 'Hello')
 
     fresh_card_literal = {"r/me/card": {'face': 'Hello'}}
     updating_card_literal = {"r/me/card": {'face': 'Hello Again', 'back': 'Konnichiwa Matane' }}
@@ -222,15 +227,15 @@ class CardTest(unittest.TestCase):
     def test_web_post_existing(self):
         existing_key = self.alice_fixture.keys[0]
         res = self.web.post('/r/me/card/%s' % str(self.alice_fixture.keys[0]), json.dumps(self.updating_card_literal))
-        self.assertRegexpMatches(res.status, '400')
+        self.assertRegexpMatches(res.status, '405')
 
     def test_web_put_new(self):
         res = self.web.put('/r/me/card', json.dumps({"r/me/card": {'face': 'Hello'}}))
-        self.assertRegexpMatches(res.status, '400')
+        self.assertRegexpMatches(res.status, '405')
 
     def test_web_put_new_for_someone(self):
         res = self.web.put('/r/%s/card' % str(self.bob.key()), json.dumps(self.fresh_card_literal))
-        self.assertRegexpMatches(res.status, '400')
+        self.assertRegexpMatches(res.status, '405')
 
     def test_web_put_update(self):
         existing_key = self.alice_fixture.keys[0]
@@ -247,8 +252,8 @@ class CardTest(unittest.TestCase):
         res = self.web.put('/r/me/card/%s' % str(bad_key), json.dumps(self.updating_card_literal))
         self.assertRegexpMatches(res.status, '400')
 
-    def test_web_put_bad(self):
-        res = self.web.put('/r/me/card', json.dumps({"r/me/card": {'foo': 'bar'}}))
+    def test_web_post_bad(self):
+        res = self.web.post('/r/me/card', json.dumps({"r/me/card": {'foo': 'bar'}}))
         self.assertRegexpMatches(res.status, '400')
         
     def test_delete(self):

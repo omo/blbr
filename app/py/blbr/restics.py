@@ -128,7 +128,6 @@ class ModelSerializer(object):
 
 
 class Controller(webapp2.RequestHandler):
-
     @property
     def repo(self):
         if not hasattr(self, '_repo'):
@@ -140,47 +139,61 @@ class Controller(webapp2.RequestHandler):
         if not hasattr(self, '_ser'):
             self._ser = ModelSerializer()
         return self._ser
-        
-    @wsgis.login_required
-    def get(self, *args):
-        found = self.repo.get(args)
+
+    def _get_or_list(self, method, args, kwargs):
+        found = method(kwargs)
         if None == found:
             self.response.status = 404
             return
         self.response.headers['Content-Type'] = 'text/json'
         json.dump(self.ser.to_bag(found), self.response.out)
 
-    @wsgis.login_required
-    def delete(self, *args):
-        if not self.repo.delete(args):
-            self.response.status = 400
-            return
-        self.response.status = 200
-
-    @wsgis.login_required
-    def put(self, *args):
-        return self._post_or_put(self.repo.put, args)
-
-    @wsgis.login_required
-    def post(self, *args):
-        return self._post_or_put(self.repo.post, args)
-
-    def _post_or_put(self, method, args):
+    def _post_or_put(self, method, args, kwargs):
         j = json.loads(self.request.body)
-        created = method(args, j[self.repo.item_namespace])
+        created = method(kwargs, j[self.repo.item_namespace])
         if not created:
             self.response.status = 400
             return
         self.response.headers['Content-Type'] = 'text/json'
         json.dump(self.ser.to_bag(created), self.response.out)
-        
-    @classmethod
-    def subclass_for(cls, a_repo_class):
-        class ResticController(cls):
-            url = a_repo_class.url_pattern
-            repo_class = a_repo_class
-        return ResticController
 
 
-def controller_for(repo_cls):
-    return Controller.subclass_for(repo_cls)
+class ItemController(Controller):
+    @wsgis.login_required
+    def delete(self, *args, **kwargs):
+        if not self.repo.delete(kwargs):
+            self.response.status = 400
+            return
+        self.response.status = 200
+
+    @wsgis.login_required
+    def put(self, *args, **kwargs):
+        return self._post_or_put(self.repo.put, args, kwargs)
+
+    @wsgis.login_required
+    def get(self, *args, **kwargs):
+        return self._get_or_list(self.repo.get, args, kwargs)
+    
+
+class CollectionController(Controller):
+    @wsgis.login_required
+    def post(self, *args, **kwargs):
+        return self._post_or_put(self.repo.post, args, kwargs)
+
+    @wsgis.login_required
+    def get(self, *args, **kwargs):
+        return self._get_or_list(self.repo.list, args, kwargs)
+
+
+def controller_for(a_repo_class):
+    class ResticItemController(ItemController):
+        url = a_repo_class.url_pattern
+        repo_class = a_repo_class
+    return ResticItemController
+
+
+def collection_controller_for(a_repo_class):
+    class ResticCollectionController(CollectionController):
+        url = a_repo_class.collection_url_pattern
+        repo_class = a_repo_class
+    return ResticCollectionController

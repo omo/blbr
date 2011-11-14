@@ -1,4 +1,6 @@
 
+import logging
+
 from google.appengine.ext import db
 from google.appengine.api import users
 
@@ -49,7 +51,7 @@ class User(restics.Model):
 
 
 class UserRepo(restics.Repo):
-    url_pattern = '/r(/([^/]+))?'
+    url_pattern = '/r/<user_id>'
 
     def find_by_keylike(self, keylike):
         if (keylike == "me"):
@@ -66,12 +68,11 @@ class UserRepo(restics.Repo):
     def me(self):
         return User.ensure_by_account(self.account)
         
-    def get(self, positionals):
-        if not self.has_full_positional(positionals):
-            # XXX: Should handle list
+    def get(self, params):
+        if not params.get('user_id'):
+            logging.info(self.__class__.__name__, '.get: Missing user_id')
             return None
-        keylike = positionals[-1]
-        return self.find_by_keylike(keylike)
+        return self.find_by_keylike(params['user_id'])
         
 
 UserController = restics.controller_for(UserRepo)

@@ -41,9 +41,10 @@ class Card(restics.Model):
             
 
 class CardRepo(restics.Repo):
-    url_pattern = '/r/([^/]+)/card(/([^/]+))?'
-    collection_namespace = 'r/me/cards'
+    url_pattern = '/r/<user_id>/card/<card_id>'
     item_namespace = 'r/me/card'
+    collection_url_pattern = '/r/<user_id>/card'
+    collection_namespace = 'r/me/cards'
     
     def __init__(self):
         restics.Repo.__init__(self)
@@ -76,63 +77,70 @@ class CardRepo(restics.Repo):
         creating.put()
         return creating
 
-    def get(self, positionals):
-        if len(positionals) < self.positional_count - 2:
-            return None
-        owner_keylike = positionals[0]
-        owner = self.parent.find_by_keylike(owner_keylike)
+    def get(self, params):
+        owner = self.parent.get(params)
         if not owner:
+            logging.info(self.__class__.__name__, ".get: Missing owner")
             return None
-        if not self.has_full_positional(positionals):
-            return restics.CollectionEnvelope(
-                self.collection_namespace,
-                Card.find_by_owner(owner.key()) or [])
+        if not params.get('card_id'):
+            logging.info(self.__class__.__name__, ".get: Missing card_id")
+            return None
         try:
-            card_keylike = positionals[2]
-            return Card.get(db.Key(card_keylike))
+            return Card.get(db.Key(params['card_id']))
         except db.BadKeyError as e:
-            logging.info("CardRepo.get: BadKeyError %s" % e)
+            logging.info(self.__class__.__name__, ".get: BadKeyError:", e)
             return None
 
-    def post(self, positionals, bag):
-        owner = self.parent.find_by_keylike(positionals[0])
+    def list(self, params):
+        owner = self.parent.get(params)
+        if not owner:
+            logging.info(self.__class__.__name__, ".get: Missing owner")
+            return None
+        return restics.CollectionEnvelope(
+            self.collection_namespace,
+            Card.find_by_owner(owner.key()) or [])
+
+
+    def post(self, params, bag):
+        owner = self.parent.get(params)
         if not owner:
             return None
-        if self.has_full_positional(positionals):
-            logging.info("CardRepo.post: Received redundnant ID for POST")
+        if params.get('card_id'):
+            logging.info(self.__class__.__name__, ".post: Received redundnant ID for POST")
             return None
         try:
             return self.create_by_bag(owner, bag)
         except db.BadValueError as e:
-            logging.info("CardRepo.post: BadValueError %s", e)
+            logging.info(self.__class__.__name__, ".post: BadValueError:", e)
             return None
 
-    def put(self, positionals, bag):
-        owner = self.parent.find_by_keylike(positionals[0])
+    def put(self, params, bag):
+        owner = self.parent.get(params)
         if not owner:
             logging.info(self.__class__.__name__, ".put: No owner")            
             return None
-        if not self.has_full_positional(positionals):
-            logging.info("CardRepo.put: Missing ID for PUT")
+        if not params.get('card_id'):
+            logging.info(self.__class__.__name__, ".put: Missing ID for PUT")
             return None
         try:
-            return self.update_by_bag(positionals[-1], bag)
+            return self.update_by_bag(params['card_id'], bag)
         except db.BadValueError as e:
-            logging.info("CardRepo.put: BadValueError %s", e)
+            logging.info(self.__class__.__name__, ".put: BadValueError:", e)
             return None
 
-    def delete(self, positionals):
-        owner = self.parent.find_by_keylike(positionals[0])
+    def delete(self, params):
+        owner = self.parent.get(params)
         if not owner:
             return False
-        if not self.has_full_positional(positionals):
-            logging.info("CardRepo.delete: Missing ID for DELETE")
+        if not params.get('card_id'):
+            logging.info(self.__class__.__name__, ".delete: Missing ID for DELETE")
             return False
         try:
-            return self.delete_by_keylike(positionals[-1])
+            return self.delete_by_keylike(params['card_id'])
         except db.BadValueError as e:
-            logging.info("CardRepo.delete: BadValueError %s", e)
+            logging.info(self.__class__.__name__, ".delete: BadValueError", e)
             return False
 
 
 CardController = restics.controller_for(CardRepo)
+CardCollectionController = restics.collection_controller_for(CardRepo)
