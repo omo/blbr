@@ -7,14 +7,20 @@ from google.appengine.api import users
 import blbr.restics as restics
 
 class Level(object):
+    placeholder_id = 'latest'
+    
     def __init__(self, round):
         self.round = round
 
     def to_bag(self):
-        return { 'round': self.round }
+        return { 'round': self.round, 'id': self.id }
 
+    @property
+    def id(self):
+        return self.placeholder_id
+    
     def updated_by_bag(self, bag):
-        return { 'round': bag.get('round') }
+        return Level(bag.get('round') or self.round)
 
 
 class User(restics.Model):
@@ -23,7 +29,7 @@ class User(restics.Model):
     updated_at = db.DateTimeProperty()
     
     account = db.UserProperty(required=True)
-    level_round = db.IntegerProperty(default=0, required=True)
+    level_round = db.IntegerProperty(default=1, required=True) # The default should be 0. This value is a workaround for batman.js.
     
     excluding_properties = ['level_round']
     
@@ -45,8 +51,7 @@ class User(restics.Model):
         return Level(round=self.level_round)
 
     def put_level(self, level):
-        # XXX: validate
-        self.level_round = level['round']
+        self.level_round = level.round
         self.put()
 
 

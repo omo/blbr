@@ -7,8 +7,8 @@ class JsonRestStorage extends Batman.RestStorage
   serializeAsForm: false
 
 class Blbr.Card extends Batman.Model
-  @persist JsonRestStorage
   @storageKey: 'r/me/card'
+  @persist JsonRestStorage
   @encode 'owner', 'face', 'back'
   face: ''
   back: ''
@@ -23,6 +23,19 @@ class Blbr.Card extends Batman.Model
   save: ->
     super =>
       @set 'editing', false
+
+class Blbr.Level extends Batman.Model
+  @storageKey: 'r/me/level'
+  @persist JsonRestStorage
+  @encode 'round'
+
+  @placeholderKey: 'latest'
+  @url: (options) -> "/#{@storageKey}"
+  @classAccessor 'mime', ->
+    console.log("mime getter")
+    # XXX: The guard condition should be a method.
+    @find(@placeholderKey, (err, records) -> console.log(err, records)) # if @::hasStorage() and @classState() not in ['loaded', 'loading']
+
 
 class Blbr.CardsController extends Batman.Controller
   index: ->

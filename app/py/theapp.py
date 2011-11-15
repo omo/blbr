@@ -14,7 +14,6 @@ jinja_environment = jinja2.Environment(
 
 
 class TemplatePage(webapp2.RequestHandler):
-
     login_required = True
     
     def make_context(self):
@@ -55,11 +54,14 @@ class TestPage(TemplatePage):
     template_name = 'test.html'
 
 
-page_classes = [IndexPage,
-                DashboardPage,
-                TestPage,
-                blbr.CardController, blbr.CardCollectionController, 
-                blbr.UserController]
+page_classes = [
+    IndexPage,
+    DashboardPage,
+    TestPage,
+    blbr.CardController, blbr.CardCollectionController,
+    blbr.LevelController,
+    blbr.UserController,
+]
 
 # Don't change the name |app|. It is given in the 'app.cfg' file.
 app = blbr.wsgis.to_application(page_classes)

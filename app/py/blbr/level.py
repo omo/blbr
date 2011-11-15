@@ -8,7 +8,7 @@ import blbr.wsgis as wsgis
 from google.appengine.ext import db
 
 class LevelRepo(restics.Repo):
-    item_url_pattern = '/r/<user_id:[^/]+>/level'
+    item_url_pattern = '/r/<user_id:[^/]+>/level/latest'
     item_namespace = 'r/me/level'
     
     def __init__(self):

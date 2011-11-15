@@ -16,15 +16,15 @@ TODO:
   > Define UserController
     + /r/<userid> for get
     + /r/me for get
-  - Define Card Model
+  + Define Card Model
   > Define CardController
     + /r/<userid>/card for list (no pagination)
-    - /r/<userid>/card/<cardid> for get/put/delete
+    + /r/<userid>/card/<cardid> for get/put/delete
 
   + Stop beign mixin ModelSerizable and turn it into ModelSerizer.
   + Add loggin on error paths
 
-- Rewrite pattern with named capture
++ Rewrite pattern with named capture
 > Exercise mode
   + Add "Level" model - which is embeded into User model.
   - Add Card.next_round, Card.maturity

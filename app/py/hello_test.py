@@ -78,7 +78,7 @@ class SerializableTest(unittest.TestCase):
     def test_hello(self):
         email = "bob@example.com"
         new_user = blbr.User(account=users.User(email))
-        self.assertEquals(new_user.level_round, 0)
+        self.assertEquals(new_user.level_round, 1)
         new_user.put()
         existing_user = blbr.User.find_by_account(new_user.account)
         rounded = round_serialization(self.ser.to_bag(existing_user))
@@ -157,16 +157,19 @@ class LevelTest(unittest.TestCase):
         self.helper.deactivate()
 
     def test_get_hello(self):
-        res = self.web.get('/r/me/level')
+        res = self.web.get('/r/me/level/latest')
         self.assertRegexpMatches(res.status, '200')
         j = json.loads(res.body)
-        self.assertEquals(j['round'], 0)
+        self.assertEquals(j['round'], 1)
+        self.assertEquals(j['id'], 'latest')
 
     def test_put_hello(self):
-        res = self.web.put('/r/me/level', json.dumps({'r/me/level': { 'round': 5 }}))
+        res = self.web.put('/r/me/level/latest',
+                           json.dumps({'r/me/level': { 'round': 5 }}))
         self.assertRegexpMatches(res.status, '200')
         self.assertEquals(json.loads(res.body)['round'], 5)
-        self.assertEquals(json.loads(self.web.get('/r/me/level').body)['round'], 5)
+        self.assertEquals(json.loads(
+            self.web.get('/r/me/level/latest').body)['round'], 5)
 
 
 class CardFixture(object):
