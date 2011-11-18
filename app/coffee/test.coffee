@@ -5,7 +5,6 @@ class FakingAjaxSend
     @original = Batman.Request::send
     self = this
     Batman.Request::send = (data) ->
-      console.log("Send:", this, data)
       self.last_data = data
       self.sent_reqs.push(this)
       @fire 'loading'
@@ -24,7 +23,6 @@ asyncTest "Instantiate Card model", ->
   ret = Blbr.Card.get('all')
   setTimeout ->
     equal(1, faking.sent_reqs.length)
-    console.log(Blbr.Card)
     faking.respond(200, { "r/me/cards": ["id": "foo"] })
-    equal(console.log(ret.reduce()), "foo")
+    equal(ret.reduce().get("id"), "foo")
     start()
