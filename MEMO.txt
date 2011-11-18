@@ -27,7 +27,7 @@ TODO:
 + Rewrite pattern with named capture
 > Exercise mode
   + Add "Level" model - which is embeded into User model.
-  - Add Card.next_round, Card.maturity
+  - Add Card.next_round, Card.maturity, Card.pass_count, Card.fail_count
 
 
 

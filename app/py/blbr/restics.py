@@ -24,6 +24,19 @@ class Model(db.Model):
         self._before_put(self)
         return db.Model.put(self)
 
+    def update_from_wild(self, bag):
+        for n in self.wild_property_names:
+            if bag[n]:
+                setattr(self, n, bag[n])
+
+    @classmethod
+    def select_wild(cls, bag):
+        def fn(a, x):
+            if bag.get(x):
+                a[x] = bag[x]
+            return a
+        return reduce(fn, cls.wild_property_names, {})
+
 
 class Repo(object):
     @property

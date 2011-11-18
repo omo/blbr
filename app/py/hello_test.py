@@ -86,6 +86,14 @@ class SerializableTest(unittest.TestCase):
         self.assertIsNone(rounded.get('level_round'))
         self.assertEquals(rounded['account']['email'], email)
 
+class ModelTest(unittest.TestCase):
+
+    def test_select_wild(self):
+        class TestingModel(blbr.restics.Model):
+            wild_property_names = ["a", "b"]
+        actual = TestingModel.select_wild({"a": 1, "c": 2})
+        self.assertEquals({"a": 1}, actual)
+
 
 class UserTest(unittest.TestCase):
     def setUp(self):
@@ -184,7 +192,6 @@ class CardTest(unittest.TestCase):
         self.helper = TestBedHelper()
         self.web = WSGITestHelper(blbr.wsgis.to_application([blbr.CardController,
                                                              blbr.CardCollectionController]))
-        
         self.bob_email = "bob@example.com"
         self.alice = self.helper.create_current_user_model()
         self.alice_fixture = CardFixture(self.alice)

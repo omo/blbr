@@ -12,7 +12,7 @@ WELCOME_CARDS = [
     { u"face": u"Welcome!", u"back": u"ようこそ!" },
     { u"face": u"The [bracket] is waiting for you.", u"back": u"[カッコ]があなたを待っています." },
 ]
-            
+
 class Card(restics.Model):
     # XXX: should be handled by the metaclass
     created_at = db.DateTimeProperty()
@@ -21,6 +21,11 @@ class Card(restics.Model):
     owner = db.ReferenceProperty(required=True)
     face = db.TextProperty(required=True)
     back = db.TextProperty()
+    next_round = db.IntegerProperty(default=1, required=True)
+    pass_count = db.IntegerProperty(default=0, required=True)
+    fail_count = db.IntegerProperty(default=0, required=True)
+
+    wild_property_names = ['face', 'back', 'next_round', 'pass_count', 'fail_count']
 
     def owned_by(self, mayowner):
         return self.owner.account == mayowner.account
@@ -61,19 +66,15 @@ class CardRepo(restics.Repo):
         updating = Card.get(db.Key(keylike))
         if (not updating) or (not updating.owned_by(self.parent.me)):
             return None
-        if bag.get('face'):
-            updating.face = bag.get('face')
-        if bag.get('back'):
-            updating.back = bag.get('back')
+        for k, v in Card.select_wild(bag).items():
+            setattr(updating, k, v)
         updating.put()
         return updating
 
     def create_by_bag(self, owner, bag):
-        creating = Card(**{
-            "owner": owner.key(),
-            "face": bag.get("face"),
-            "back": bag.get("back"),
-        })
+        options = Card.select_wild(bag)
+        options["owner"] = owner.key()
+        creating = Card(**options)
         creating.put()
         return creating
 

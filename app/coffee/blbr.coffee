@@ -9,7 +9,7 @@ class JsonRestStorage extends Batman.RestStorage
 class Blbr.Card extends Batman.Model
   @storageKey: 'r/me/card'
   @persist JsonRestStorage
-  @encode 'owner', 'face', 'back'
+  @encode 'owner', 'face', 'back', 'next_round', 'pass_count', 'fail_count'
   face: ''
   back: ''
 
