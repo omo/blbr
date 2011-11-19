@@ -28,12 +28,14 @@ TODO:
 > Exercise mode
   + Add "Level" model - which is embeded into User model.
   + Add Card.next_round, Card.maturity, Card.pass_count, Card.fail_count
-  - Add scoring logic (pass/fail)
+  + Add scoring logic (pass/fail)
   - Add a Get for exercise list.
-  - Think Simple UI
+  - Add simplest per-card UI
+  - Add Card.judge or something like that.
+  - More UI...?
 
 
-> A bit serious about UI
+> Be a bit serious about UI
   - Extract hard-coded CSS to a separate less file.
 
 > A simple CRUD for the Card model

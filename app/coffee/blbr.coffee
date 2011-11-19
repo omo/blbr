@@ -9,7 +9,7 @@ class JsonRestStorage extends Batman.RestStorage
 class Blbr.Card extends Batman.Model
   @storageKey: 'r/me/card'
   @persist JsonRestStorage
-  @encode 'owner', 'face', 'back', 'next_round', 'pass_count', 'fail_count'
+  @encode 'owner', 'face', 'back', 'next_round', 'pass_count', 'fail_count', 'succession'
   face: ''
   back: ''
 
@@ -23,6 +23,19 @@ class Blbr.Card extends Batman.Model
   save: ->
     super =>
       @set 'editing', false
+  score_as_pass: ->
+    @set('pass_count', @get('pass_count') + 1)
+    @set('succession', @get('succession') + 1)
+    @set('next_round', @get('last_round') + @get('succession'))
+  pass: ->
+    @score_as_pass()
+    @save()
+  score_as_fail: ->
+    @set('fail_count', @get('fail_count') + 1)
+    @set('succession', 0)
+  fail: ->
+    @score_as_fail()
+    @save()
 
 class Blbr.Level extends Batman.Model
   @storageKey: 'r/me/level'

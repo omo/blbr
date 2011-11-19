@@ -65,6 +65,11 @@
              <input type="button" data-event-click="card.cancel" value="Cancel">
              <input type="button" data-event-click="card.destroy" data-confirm="Delete the card?" value="Delete">
            </div>
+           <div>
+             pass: <span class="card-fail-count" data-bind="card.pass_count"></span>
+             fail: <span class="card-pass-count" data-bind="card.fail_count"></span>
+             succ: <span class="card-succession" data-bind="card.succession"></span>
+           </div>
         </div>
       </div>
     </div>

@@ -24,6 +24,7 @@ class Card(restics.Model):
     next_round = db.IntegerProperty(default=1, required=True)
     pass_count = db.IntegerProperty(default=0, required=True)
     fail_count = db.IntegerProperty(default=0, required=True)
+    succession = db.IntegerProperty(default=0, required=True)    
 
     wild_property_names = ['face', 'back', 'next_round', 'pass_count', 'fail_count']
 
