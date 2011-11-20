@@ -46,29 +46,39 @@
 
       <input class="level-round" data-bind="Level.mime.round"></input>
 
-      <form data-formfor-card="controllers.cards.emptyCard" data-event-submit="controllers.cards.create">
-        <input class="new-item" placeholder="Add a original text here" data-bind="card.face" />
-        <input class="new-item" placeholder="対訳をかく" data-bind="card.back" />
-        <input type="submit" />
-      </form>
-      <div id="items">
-        <div data-foreach-card="Card.all" data-event-click="card.edit" class="card-item"
-             data-addclass-editing="card.editing">
-           <div class="card-view">
-             <div class="card-face" data-bind="card.face"></div>
-             <div class="card-back" data-bind="card.back"></div>
-           </div>
-           <div class="card-edit" data-context="card" >
-             <input class="card-edit-face" data-bind="card.face">
-             <input class="card-edit-back" data-bind="card.back">
-             <input type="button" data-event-click="card.save" value="Save">
-             <input type="button" data-event-click="card.cancel" value="Cancel">
-             <input type="button" data-event-click="card.destroy" data-confirm="Delete the card?" value="Delete">
-           </div>
-           <div>
-             pass: <span class="card-fail-count" data-bind="card.pass_count"></span>
-             fail: <span class="card-pass-count" data-bind="card.fail_count"></span>
-             succ: <span class="card-succession" data-bind="card.succession"></span>
+      <div id="round">
+        <div data-foreach-card="Card.round" class="card-round">
+           <div class="card-face" data-bind="card.face"></div>
+           <div class="card-back" data-bind="card.back"></div>
+           <input type="button" data-event-click="card.judge" value="Judge"></input>
+        </div>
+      </div>
+
+      <div id="item-list">
+        <form data-formfor-card="controllers.cards.emptyCard" data-event-submit="controllers.cards.create">
+          <input class="new-item" placeholder="Add a original text here" data-bind="card.face" />
+          <input class="new-item" placeholder="対訳をかく" data-bind="card.back" />
+          <input type="submit" />
+        </form>
+        <div id="items">
+          <div data-foreach-card="Card.freshAll" data-event-click="card.edit" class="card-item"
+               data-addclass-editing="card.editing">
+             <div class="card-view">
+               <div class="card-face" data-bind="card.face"></div>
+               <div class="card-back" data-bind="card.back"></div>
+             </div>
+             <div class="card-edit" data-context="card" >
+               <input class="card-edit-face" data-bind="card.face">
+               <input class="card-edit-back" data-bind="card.back">
+               <input type="button" data-event-click="card.save" value="Save">
+               <input type="button" data-event-click="card.cancel" value="Cancel">
+               <input type="button" data-event-click="card.destroy" data-confirm="Delete the card?" value="Delete">
+             </div>
+             <div>
+               pass: <span class="card-fail-count" data-bind="card.pass_count"></span>
+               fail: <span class="card-pass-count" data-bind="card.fail_count"></span>
+               succ: <span class="card-succession" data-bind="card.succession"></span>
+             </div>
            </div>
         </div>
       </div>

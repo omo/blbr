@@ -225,11 +225,13 @@ class CardTest(unittest.TestCase):
         self.assert_looking_like_a_card(j)
         
 
-    fresh_card_literal = {"r/me/card": {'face': 'Hello'}}
+    fresh_card_literals = [ {"r/me/card": {'face': 'Hello'}},
+                            {"r/me/card": {'face': 'How are you'}},
+                            {"r/me/card": {'face': 'Fine'}} ]
     updating_card_literal = {"r/me/card": {'face': 'Hello Again', 'back': 'Konnichiwa Matane' }}
     
     def test_web_post_new(self):
-        res = self.web.post('/r/me/card', json.dumps(self.fresh_card_literal))
+        res = self.web.post('/r/me/card', json.dumps(self.fresh_card_literals[0]))
         self.assertRegexpMatches(res.status, '200')
         j = json.loads(res.body)
         self.assert_looking_like_a_card(j, "Hello", None)
@@ -244,7 +246,7 @@ class CardTest(unittest.TestCase):
         self.assertRegexpMatches(res.status, '405')
 
     def test_web_put_new_for_someone(self):
-        res = self.web.put('/r/%s/card' % str(self.bob.key()), json.dumps(self.fresh_card_literal))
+        res = self.web.put('/r/%s/card' % str(self.bob.key()), json.dumps(self.fresh_card_literals[0]))
         self.assertRegexpMatches(res.status, '405')
 
     def test_web_put_update(self):
@@ -272,3 +274,23 @@ class CardTest(unittest.TestCase):
         res = self.web.delete('/r/me/card/%s' % str(existing_key))
         self.assertRegexpMatches(res.status, '200')
         self.assertEquals(len(blbr.Card.find_by_owner(self.alice.key())), 1)
+
+    @classmethod
+    def _resp_to_id(cls, resp):
+        return json.loads(resp.body)["id"]
+
+    def _wrap_id_with_next_round(self, id, round):
+        return json.dumps({"r/me/card": {"id": id, "next_round": round}})
+
+    def test_round_for(self):
+        blbr.Card.TEST_delete_all()
+        ids = [ self._resp_to_id(self.web.post('/r/me/card', json.dumps(l))) for l in self.fresh_card_literals ]
+        self.web.put('/r/me/card/%s' % ids[0], self._wrap_id_with_next_round(ids[0], 20))
+        self.web.put('/r/me/card/%s' % ids[1], self._wrap_id_with_next_round(ids[1], 10))
+        self.web.put('/r/me/card/%s' % ids[2], self._wrap_id_with_next_round(ids[2], 30))        
+
+        j = json.loads(self.web.get('/r/me/card?order=round').body)
+        self.assertEquals(3, len(j["r/me/cards"]))
+        self.assertEquals(j["r/me/cards"][0]["id"], ids[1])
+        self.assertEquals(j["r/me/cards"][1]["id"], ids[0])
+        self.assertEquals(j["r/me/cards"][2]["id"], ids[2])

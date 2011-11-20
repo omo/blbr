@@ -36,6 +36,10 @@ class Card(restics.Model):
         return cls.all().filter("owner = ", owner).fetch(100, 0)
 
     @classmethod
+    def round_for(cls, owner):
+        return cls.all().filter("owner = ", owner).order("next_round").fetch(10, 0)
+
+    @classmethod
     def welcome(cls, owner):
         founds = cls.find_by_owner(owner)
         if founds:
@@ -45,13 +49,17 @@ class Card(restics.Model):
             fresh["owner"] = owner
             Card(**fresh).put()
             
+    @classmethod
+    def TEST_delete_all(cls):
+        for c in cls.all().fetch(100, 0):
+            c.delete()
 
 class CardRepo(restics.Repo):
     item_url_pattern = '/r/<user_id>/card/<card_id>'
     item_namespace = 'r/me/card'
     collection_url_pattern = '/r/<user_id>/card'
     collection_namespace = 'r/me/cards'
-    
+
     def __init__(self):
         restics.Repo.__init__(self)
         self.parent = blbr.user.UserRepo()
@@ -98,6 +106,11 @@ class CardRepo(restics.Repo):
         if not owner:
             logging.info(self.__class__.__name__, ".get: Missing owner")
             return None
+        order = params.get('order')
+        if order == 'round':
+            return restics.CollectionEnvelope(
+                self.collection_namespace,
+                Card.round_for(owner.key()) or [])
         return restics.CollectionEnvelope(
             self.collection_namespace,
             Card.find_by_owner(owner.key()) or [])
@@ -142,6 +155,7 @@ class CardRepo(restics.Repo):
         except db.BadValueError as e:
             logging.info(self.__class__.__name__, ".delete: BadValueError", e)
             return False
+
 
 
 CardController = restics.item_controller_for(CardRepo)

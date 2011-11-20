@@ -134,6 +134,11 @@ class ModelSerializer(object):
 
 
 class Controller(webapp2.RequestHandler):
+    def _make_kwargs(self):
+        if not self.request.environ.get('QUERY_STRING'):
+            return self.request.route_kwargs
+        return dict(self.request.route_kwargs, **self.request.GET)
+        
     @property
     def repo(self):
         if not hasattr(self, '_repo'):
@@ -146,17 +151,17 @@ class Controller(webapp2.RequestHandler):
             self._ser = ModelSerializer()
         return self._ser
 
-    def _get_or_list(self, method, args, kwargs):
-        found = method(kwargs)
+    def _get_or_list(self, method):
+        found = method(self._make_kwargs())
         if None == found:
             self.response.status = 404
             return
         self.response.headers['Content-Type'] = 'text/json'
         json.dump(self.ser.to_bag(found), self.response.out)
 
-    def _post_or_put(self, method, args, kwargs):
+    def _post_or_put(self, method):
         j = json.loads(self.request.body)
-        created = method(kwargs, j[self.repo.item_namespace])
+        created = method(self._make_kwargs(), j[self.repo.item_namespace])
         if not created:
             self.response.status = 400
             return
@@ -167,28 +172,28 @@ class Controller(webapp2.RequestHandler):
 class ItemController(Controller):
     @wsgis.login_required
     def delete(self, *args, **kwargs):
-        if not self.repo.delete(kwargs):
+        if not self.repo.delete(self._make_kwargs()):
             self.response.status = 400
             return
         self.response.status = 200
 
     @wsgis.login_required
     def put(self, *args, **kwargs):
-        return self._post_or_put(self.repo.put, args, kwargs)
+        return self._post_or_put(self.repo.put)
 
     @wsgis.login_required
     def get(self, *args, **kwargs):
-        return self._get_or_list(self.repo.get, args, kwargs)
+        return self._get_or_list(self.repo.get)
     
 
 class CollectionController(Controller):
     @wsgis.login_required
     def post(self, *args, **kwargs):
-        return self._post_or_put(self.repo.post, args, kwargs)
+        return self._post_or_put(self.repo.post)
 
     @wsgis.login_required
     def get(self, *args, **kwargs):
-        return self._get_or_list(self.repo.list, args, kwargs)
+        return self._get_or_list(self.repo.list)
 
 
 def item_controller_for(a_repo_class):

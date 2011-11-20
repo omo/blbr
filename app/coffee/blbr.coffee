@@ -13,12 +13,21 @@ class Blbr.Card extends Batman.Model
   face: ''
   back: ''
 
+  @classAccessor 'round'
+    get: =>
+      @load(sort: 'round')
+      @get('loaded')
+  # XXX: doesn't use 'all' here to force @load() regardless of @classState.
+  @classAccessor 'freshAll'
+    get: =>
+      @load()
+      @get('loaded')
   edit: (target) ->
     @set 'editing', true
     $(target).find('input').first().select()
   cancel: (target, evt) ->
     evt.stopPropagation() if evt
-    # XXX: check dirtiness
+    # TODO(omo): check dirtiness to skip redundant requests.
     @load => @set 'editing', false
   save: ->
     super =>
@@ -45,9 +54,7 @@ class Blbr.Level extends Batman.Model
   @placeholderKey: 'latest'
   @url: (options) -> "/#{@storageKey}"
   @classAccessor 'mime', ->
-    console.log("mime getter")
-    # XXX: The guard condition should be a method.
-    @find(@placeholderKey, (err, records) -> console.log(err, records)) # if @::hasStorage() and @classState() not in ['loaded', 'loading']
+    @find(@placeholderKey, (err, records) -> console.log(err, records) if err)  # if @::hasStorage() and @classState() not in ['loaded', 'loading']
 
 
 class Blbr.CardsController extends Batman.Controller
