@@ -48,9 +48,8 @@
 
       <div id="round">
         <div data-foreach-card="Card.round" class="card-round">
-           <div class="card-face" data-bind="card.face"></div>
-           <div class="card-back" data-bind="card.back"></div>
-           <input type="button" data-event-click="card.judge" value="Judge"></input>
+          <span data-foreach-f="card.face_fragments" data-bind='f.text'></span>
+          <input type="button" data-event-click="card.judge" value="Judge"></input>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 
+
 class Blbr extends Batman.App
   @global yes
   @root 'cards#index'
@@ -6,12 +7,30 @@ class Blbr extends Batman.App
 class JsonRestStorage extends Batman.RestStorage
   serializeAsForm: false
 
+class Blbr.CardFragment extends Batman.Object
+  constructor: (text, open) ->
+     super(text: text, open: open)
+  @_parse_append: (str, a) ->
+    if m = str.match(/([^\[]*)\[([^\]]*)\](.*)/)
+      a.push(new Blbr.CardFragment(m[1], true)) if m[1].length
+      a.push(new Blbr.CardFragment(m[2], false))
+      @_parse_append(m[3], a)
+    else
+      a.push(new Blbr.CardFragment(str, true)) if str.length
+    a
+  @split: (str) ->
+    @_parse_append(str, [])
+
 class Blbr.Card extends Batman.Model
   @storageKey: 'r/me/card'
   @persist JsonRestStorage
   @encode 'owner', 'face', 'back', 'next_round', 'pass_count', 'fail_count', 'succession'
   face: ''
   back: ''
+
+  constructor: ->
+    super
+    @observe 'face', => @set('face_fragments', Blbr.CardFragment.split(@get('face')))
 
   @classAccessor 'round'
     get: =>
@@ -46,6 +65,17 @@ class Blbr.Card extends Batman.Model
     @score_as_fail()
     @save()
 
+  @accessor 'face_fragments'
+    get: (key) ->
+      @face_fragments ||= new Batman.Set()
+    set: (key, val) ->
+      (@face_fragments ||= new Batman.Set()).clear()
+      @face_fragments.merge(val)
+
+#  @accessor 'back_fragments'
+#    get: => Blbr.CardFragment.split(@get('back'))
+
+
 class Blbr.Level extends Batman.Model
   @storageKey: 'r/me/level'
   @persist JsonRestStorage
@@ -65,3 +95,4 @@ class Blbr.CardsController extends Batman.Controller
     @emptyCard.save (error, record) =>
       throw error if error
       @set 'emptyCard', new Blbr.Card()
+

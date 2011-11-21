@@ -58,3 +58,40 @@ test "Card.score_as_fail", ->
   equal(card.get("pass_count"),  1)
   equal(card.get("fail_count"),  3)
   equal(card.get("succession"),  0)
+
+test "CardFragment hello", ->
+  f = Blbr.CardFragment.split("hello")
+  equal(1, f.length)
+  equal("hello", f[0].get('text'))
+  ok(f[0].get('open'))
+
+test "CardFragment middle hole", ->
+  f = Blbr.CardFragment.split("foo [bar] baz")
+  equal(3, f.length)
+  equal("foo ", f[0].get('text'))
+  equal("bar",  f[1].get('text'))
+  equal(" baz", f[2].get('text'))
+
+test "CardFragment side hole", ->
+  f = Blbr.CardFragment.split("[foo] bar [baz]")
+  equal(3, f.length)
+  equal("foo", f[0].get('text'))
+  ok(!f[0].get('open'))
+  equal(" bar ",  f[1].get('text'))
+  ok(f[1].get('open'))
+  equal("baz", f[2].get('text'))
+  ok(!f[2].get('open'))
+
+test "CardFragment multiple hole", ->
+  f = Blbr.CardFragment.split("1 [2] 3 [4] 5")
+  equal(5, f.length)
+  equal("1 ", f[0].get('text'))
+  ok( f[0].get('open'))
+  equal("2",  f[1].get('text'))
+  ok(!f[1].get('open'))
+  equal(" 3 ", f[2].get('text'))
+  ok( f[2].get('open'))
+  equal("4",  f[3].get('text'))
+  ok(!f[3].get('open'))
+  equal(" 5",  f[4].get('text'))
+  ok( f[4].get('open'))
