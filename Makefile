@@ -46,6 +46,5 @@ clean:
 # XXX: checkout bootstrap
 setup:
 	cd ${BOOTSTRAP_DIR}; make DATE=date
-	ender add ${JS_LIB_PACKAGES}
 
 .PHONY: clean
