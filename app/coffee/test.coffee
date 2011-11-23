@@ -95,3 +95,9 @@ test "CardFragment multiple hole", ->
   ok(!f[3].get('open'))
   equal(" 5",  f[4].get('text'))
   ok( f[4].get('open'))
+
+test "CardFragment.parse should preverve the order", ->
+  set = Blbr.CardFragment.parse("[foo] bar [baz]").toArray()
+  equal("foo", set[0].get('text'))
+  equal(" bar ", set[1].get('text'))
+  equal("baz", set[2].get('text'))

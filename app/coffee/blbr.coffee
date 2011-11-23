@@ -20,6 +20,10 @@ class Blbr.CardFragment extends Batman.Object
     a
   @split: (str) ->
     @_parse_append(str, [])
+  @parse: (str) ->
+    set = new Batman.Set()
+    @split(str).forEach((e) => set.add(e))
+    set
 
 class Blbr.Card extends Batman.Model
   @storageKey: 'r/me/card'
@@ -30,7 +34,8 @@ class Blbr.Card extends Batman.Model
 
   constructor: ->
     super
-    @observe 'face', => @set('face_fragments', Blbr.CardFragment.split(@get('face')))
+    @observe 'face', (value) =>
+      @set('face_fragments', Blbr.CardFragment.parse(value))
 
   @classAccessor 'round'
     get: =>
@@ -69,8 +74,7 @@ class Blbr.Card extends Batman.Model
     get: (key) ->
       @face_fragments ||= new Batman.Set()
     set: (key, val) ->
-      (@face_fragments ||= new Batman.Set()).clear()
-      @face_fragments.merge(val)
+      (@face_fragments ||= new Batman.Set()).replace(val)
 
 #  @accessor 'back_fragments'
 #    get: => Blbr.CardFragment.split(@get('back'))
