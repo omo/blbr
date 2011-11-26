@@ -18,9 +18,12 @@ class TemplatePage(webapp2.RequestHandler):
     
     def make_context(self):
         return {}
-    
+
+    def requiring(self):
+        return self.login_required and blbr.wsgis.require_login(redirect=self.url) or None
+
     def get(self):
-        requiring = self.login_required and blbr.wsgis.require_login(redirect=self.url) or None
+        requiring = self.requiring()
         if requiring:
             return requiring
         template = jinja_environment.get_template(self.template_name)
@@ -43,6 +46,9 @@ class DashboardPage(TemplatePage):
     template_name = 'dashboard.html'
 
     def get(self):
+        r = self.requiring()
+        if r:
+            return r
         me = blbr.User.ensure_by_account(users.get_current_user())
         blbr.Card.welcome(me)
         return TemplatePage.get(self)
