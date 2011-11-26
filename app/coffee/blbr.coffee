@@ -36,6 +36,8 @@ class Blbr.Card extends Batman.Model
     super
     @observe 'face', (value) =>
       @set('face_fragments', Blbr.CardFragment.parse(value))
+    @observe 'back', (value) =>
+      @set('back_fragments', Blbr.CardFragment.parse(value))
 
   @classAccessor 'round'
     get: =>
@@ -56,28 +58,28 @@ class Blbr.Card extends Batman.Model
   save: ->
     super =>
       @set 'editing', false
-  score_as_pass: ->
+  scoreAsPass: ->
     @set('pass_count', @get('pass_count') + 1)
     @set('succession', @get('succession') + 1)
     @set('next_round', @get('last_round') + @get('succession'))
   pass: ->
-    @score_as_pass()
+    @scoreAsPass()
     @save()
-  score_as_fail: ->
+  scoreAsFail: ->
     @set('fail_count', @get('fail_count') + 1)
     @set('succession', 0)
   fail: ->
-    @score_as_fail()
+    @scoreAsFail()
     @save()
 
-  @accessor 'face_fragments'
+  @setReplacyAndGetLazilyFor: (name) ->
     get: (key) ->
-      @face_fragments ||= new Batman.Set()
+      self[name] ||= new Batman.Set()
     set: (key, val) ->
-      (@face_fragments ||= new Batman.Set()).replace(val)
+      (self[name] ||= new Batman.Set()).replace(val)
 
-#  @accessor 'back_fragments'
-#    get: => Blbr.CardFragment.split(@get('back'))
+  @accessor 'face_fragments', @setReplacyAndGetLazilyFor('face_fragments')
+  @accessor 'back_fragments', @setReplacyAndGetLazilyFor('back_fragments')
 
 
 class Blbr.Level extends Batman.Model

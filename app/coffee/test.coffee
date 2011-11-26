@@ -43,17 +43,17 @@ asyncTest "Card.round should request to the corresponding url", ->
     faking.respond_a_one_item_collection()
     start()
 
-test "Card.score_as_pass", ->
+test "Card.scoreAsPass", ->
   card = make_fixture_card()
-  card.score_as_pass()
+  card.scoreAsPass()
   equal(card.get("next_round"), 24)
   equal(card.get("pass_count"),  2)
   equal(card.get("fail_count"),  2)
   equal(card.get("succession"),  4)
 
-test "Card.score_as_fail", ->
+test "Card.scoreAsFail", ->
   card = make_fixture_card()
-  card.score_as_fail()
+  card.scoreAsFail()
   equal(card.get("next_round"), 10)
   equal(card.get("pass_count"),  1)
   equal(card.get("fail_count"),  3)
