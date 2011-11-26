@@ -5,6 +5,7 @@
   <link href="/stylesheets/bootstrap.css" rel="stylesheet">
   <script src="/js/lib/jquery-1.7.js"></script>
   <script src="/js/lib/batman.js"></script>
+  <script src="/js/lib/bootstrap-twipsy.js"></script>
   <script src="/js/lib/batman.jquery.js"></script>
   <script src="/js/app/blbr.js"></script>
   <script src="/js/app/dashboard.js"></script>
@@ -30,6 +31,15 @@
   display: none; 
 }
 
+.round-back .blank {
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.judged {
+  border-style: solid;
+}
+
    </style>
 </head>
 <body>
@@ -47,9 +57,23 @@
       <input class="level-round" data-bind="Level.mime.round"></input>
 
       <div id="round">
-        <div data-foreach-card="Card.round" class="card-round">
-          <span data-foreach-f="card.face_fragments" data-bind='f.text'></span>
-          <input type="button" data-event-click="card.judge" value="Judge"></input>
+        <div data-foreach-card="Card.round" class="card-round" data-addclass-judged="card.judged">
+          <div class="round-face">
+            <span data-foreach-f="card.face_fragments">
+              <span data-bind='f.text' data-hideif="f.blank"></span>
+              <input type="text" data-bind='f.filledText' data-showif="f.blank" 
+                     data-bind-style="f.blankStyle"></input>
+              <span data-showif="card.failing" data-bind="f.text"></span>
+            </span>
+          </div>
+          <div class="round-back">
+            <span data-foreach-f="card.back_fragments">
+              <span data-bind='f.text' data-addclass-blank="f.blank"></span>
+            </span>
+          </div>
+          <input type="button" data-event-click="card.judge" data-hideif="card.judged" value="Judge"></input>
+          <input type="button" data-event-click="card.proceed" data-showif="card.passing" value="Proceed"></input>
+          <input type="button" data-event-click="card.retry" data-showif="card.failing" value="Retry"></input>
         </div>
       </div>
 

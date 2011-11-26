@@ -8,15 +8,15 @@ class JsonRestStorage extends Batman.RestStorage
   serializeAsForm: false
 
 class Blbr.CardFragment extends Batman.Object
-  constructor: (text, open) ->
-     super(text: text, open: open)
+  constructor: (text, blank) ->
+     super(text: text, filledText: "", blank: blank)
   @_parse_append: (str, a) ->
     if m = str.match(/([^\[]*)\[([^\]]*)\](.*)/)
-      a.push(new Blbr.CardFragment(m[1], true)) if m[1].length
-      a.push(new Blbr.CardFragment(m[2], false))
+      a.push(new Blbr.CardFragment(m[1], false)) if m[1].length
+      a.push(new Blbr.CardFragment(m[2], true))
       @_parse_append(m[3], a)
     else
-      a.push(new Blbr.CardFragment(str, true)) if str.length
+      a.push(new Blbr.CardFragment(str, false)) if str.length
     a
   @split: (str) ->
     @_parse_append(str, [])
@@ -24,6 +24,12 @@ class Blbr.CardFragment extends Batman.Object
     set = new Batman.Set()
     @split(str).forEach((e) => set.add(e))
     set
+  # XXX this kind of presentation stuff should be held somewhere else.
+  @accessor 'blankStyle', -> { width: "#{@get('text').length}em" }
+
+  isBlankSatisfied: ->
+    (not @blank) or (@text is @filledText)
+  fill: (text) -> @set('filledText', text)
 
 class Blbr.Card extends Batman.Model
   @storageKey: 'r/me/card'
@@ -71,16 +77,38 @@ class Blbr.Card extends Batman.Model
   fail: ->
     @scoreAsFail()
     @save()
+  doJudge: ->
+    @unsatisfied = @face_fragments.filter((f) -> !f.isBlankSatisfied())
+    @unsatisfied = null if 0 == @unsatisfied.length
+    @unsatisfied
+  judge: ->
+    @doJudge()
+    @set('judged', true)
+    @set('failing', @unsatisfied isnt null)
+    @set('passing', @unsatisfied is   null)
+
+    if @failing
+      @fail()
+    else
+      @pass()
+
+  _resetJudge: ->
+    @set('judged', false)
+    @set('failing', false)
+    @set('passing', false)
+  retry: ->
+    @_resetJudge()
+  proceed: ->
+    @_resetJudge()
 
   @setReplacyAndGetLazilyFor: (name) ->
     get: (key) ->
-      self[name] ||= new Batman.Set()
+      @[name] ||= new Batman.Set()
     set: (key, val) ->
-      (self[name] ||= new Batman.Set()).replace(val)
+      (@[name] ||= new Batman.Set()).replace(val)
 
   @accessor 'face_fragments', @setReplacyAndGetLazilyFor('face_fragments')
   @accessor 'back_fragments', @setReplacyAndGetLazilyFor('back_fragments')
-
 
 class Blbr.Level extends Batman.Model
   @storageKey: 'r/me/level'

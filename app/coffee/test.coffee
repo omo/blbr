@@ -57,13 +57,21 @@ test "Card.scoreAsFail", ->
   equal(card.get("next_round"), 10)
   equal(card.get("pass_count"),  1)
   equal(card.get("fail_count"),  3)
-  equal(card.get("succession"),  0)
+
+test "Card doJudge", ->
+  card = make_fixture_card()
+  card.set("face", "foo [bar]")
+  ok(!card.doJudge())
+  card.face_fragments.toArray()[1].fill("baz")
+  ok(!card.doJudge())
+  card.face_fragments.toArray()[1].fill("bar")
+  ok( card.doJudge())
 
 test "CardFragment hello", ->
   f = Blbr.CardFragment.split("hello")
   equal(1, f.length)
   equal("hello", f[0].get('text'))
-  ok(f[0].get('open'))
+  ok(!f[0].get('blank'))
 
 test "CardFragment middle hole", ->
   f = Blbr.CardFragment.split("foo [bar] baz")
@@ -76,25 +84,38 @@ test "CardFragment side hole", ->
   f = Blbr.CardFragment.split("[foo] bar [baz]")
   equal(3, f.length)
   equal("foo", f[0].get('text'))
-  ok(!f[0].get('open'))
+  ok( f[0].get('blank'))
   equal(" bar ",  f[1].get('text'))
-  ok(f[1].get('open'))
+  ok(!f[1].get('blank'))
   equal("baz", f[2].get('text'))
-  ok(!f[2].get('open'))
+  ok( f[2].get('blank'))
 
 test "CardFragment multiple hole", ->
   f = Blbr.CardFragment.split("1 [2] 3 [4] 5")
   equal(5, f.length)
   equal("1 ", f[0].get('text'))
-  ok( f[0].get('open'))
+  ok(!f[0].get('blank'))
   equal("2",  f[1].get('text'))
-  ok(!f[1].get('open'))
+  ok( f[1].get('blank'))
   equal(" 3 ", f[2].get('text'))
-  ok( f[2].get('open'))
+  ok(!f[2].get('blank'))
   equal("4",  f[3].get('text'))
-  ok(!f[3].get('open'))
+  ok( f[3].get('blank'))
   equal(" 5",  f[4].get('text'))
-  ok( f[4].get('open'))
+  ok(!f[4].get('blank'))
+
+test "CardFragment blankStyle", ->
+  f = Blbr.CardFragment.split("[123]")
+  deepEqual({width: "3em"}, f[0].get('blankStyle'))
+
+test "CardFragment isBlankSatisfied", ->
+  f = Blbr.CardFragment.split("123 [456]")
+  ok( f[0].isBlankSatisfied())
+  ok(!f[1].isBlankSatisfied())
+  f[1].set('filledText', "789")
+  ok(!f[1].isBlankSatisfied())
+  f[1].set('filledText', "456")
+  ok( f[1].isBlankSatisfied())
 
 test "CardFragment.parse should preverve the order", ->
   set = Blbr.CardFragment.parse("[foo] bar [baz]").toArray()
