@@ -71,7 +71,7 @@ test "CardFragment hello", ->
   f = Blbr.CardFragment.split("hello")
   equal(1, f.length)
   equal("hello", f[0].get('text'))
-  ok(!f[0].get('blank'))
+  ok( f[0].get('blank'))
 
 test "CardFragment middle hole", ->
   f = Blbr.CardFragment.split("foo [bar] baz")

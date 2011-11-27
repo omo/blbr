@@ -31,9 +31,9 @@ TODO:
   + Add scoring logic (pass/fail)
   + Add a Get for exercise list.
   + Add simplest per-card UI
-  - Add Card.judge or something like that.
-  - support bracket-less card
-  - BUG: Card.succ doesn't change.
+  + Add Card.judge or something like that.
+  + BUG: Card.succ doesn't change.
+  + support bracket-less card
   - More UI...?
 
 > Be a bit serious about UI

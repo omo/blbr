@@ -22,7 +22,9 @@ class Blbr.CardFragment extends Batman.Object
     @_parse_append(str, [])
   @parse: (str) ->
     set = new Batman.Set()
-    @split(str).forEach((e) => set.add(e))
+    list = @split(str)
+    list[0].blank = true if 1 == list.length
+    list.forEach((e) => set.add(e))
     set
   # XXX this kind of presentation stuff should be held somewhere else.
   @accessor 'blankStyle', -> { width: "#{@get('text').length}em" }
@@ -80,7 +82,7 @@ class Blbr.Card extends Batman.Model
   doJudge: ->
     @unsatisfied = @face_fragments.filter((f) -> !f.isBlankSatisfied())
     @unsatisfied = null if 0 == @unsatisfied.length
-    @unsatisfied
+    @unsatisfied is null
   judge: ->
     @doJudge()
     @set('judged', true)
@@ -92,14 +94,13 @@ class Blbr.Card extends Batman.Model
     else
       @pass()
 
-  _resetJudge: ->
+  retry: (el) ->
     @set('judged', false)
     @set('failing', false)
     @set('passing', false)
-  retry: ->
-    @_resetJudge()
-  proceed: ->
-    @_resetJudge()
+    # TODO: focus on the first textarea
+  proceed: (el) ->
+    # TODO: focus on the first textarea of this.
 
   @setReplacyAndGetLazilyFor: (name) ->
     get: (key) ->

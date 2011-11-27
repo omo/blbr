@@ -26,7 +26,7 @@ class Card(restics.Model):
     fail_count = db.IntegerProperty(default=0, required=True)
     succession = db.IntegerProperty(default=0, required=True)    
 
-    wild_property_names = ['face', 'back', 'next_round', 'pass_count', 'fail_count']
+    wild_property_names = ['face', 'back', 'next_round', 'pass_count', 'fail_count', 'succession']
 
     def owned_by(self, mayowner):
         return self.owner.account == mayowner.account

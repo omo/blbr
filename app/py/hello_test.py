@@ -228,7 +228,7 @@ class CardTest(unittest.TestCase):
     fresh_card_literals = [ {"r/me/card": {'face': 'Hello'}},
                             {"r/me/card": {'face': 'How are you'}},
                             {"r/me/card": {'face': 'Fine'}} ]
-    updating_card_literal = {"r/me/card": {'face': 'Hello Again', 'back': 'Konnichiwa Matane' }}
+    updating_card_literal = {"r/me/card": {'face': 'Hello Again', 'back': 'Konnichiwa Matane', 'succession': 100 } }
     
     def test_web_post_new(self):
         res = self.web.post('/r/me/card', json.dumps(self.fresh_card_literals[0]))
@@ -258,6 +258,7 @@ class CardTest(unittest.TestCase):
         self.assertEquals(updated.key(), existing_key)
         self.assertEquals(updated.face, 'Hello Again')
         self.assertEquals(updated.back, 'Konnichiwa Matane')
+        self.assertEquals(updated.succession, 100)
 
     def test_web_put_for_bad_owner(self):
         bad_key = self.bob_fixture.keys[0]
